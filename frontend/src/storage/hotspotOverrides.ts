@@ -2,10 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Hotspot } from "@/src/huntConfig";
 
-const HOTSPOT_OVERRIDE_KEY = "@easter-hunt-hotspot-overrides";
-
 let inMemoryOverrides: Record<string, Hotspot[]> = {};
 let storageMode: "unknown" | "async" | "memory" = "unknown";
+
+const getZoneStorageKey = (zoneId: number) => `hunt.hotspots.override.zone${zoneId}`;
 
 const cloneHotspots = (hotspots: Hotspot[]) =>
   hotspots.map((hotspot) => ({ ...hotspot }));
@@ -40,7 +40,7 @@ async function canUseAsyncStorage() {
       return false;
     }
 
-    const probeKey = `${HOTSPOT_OVERRIDE_KEY}:probe`;
+    const probeKey = `${getZoneStorageKey(0)}:probe`;
     await AsyncStorage.setItem(probeKey, "1");
     await AsyncStorage.removeItem(probeKey);
     storageMode = "async";
@@ -51,28 +51,22 @@ async function canUseAsyncStorage() {
   }
 }
 
-async function readAllOverrides() {
-  const memoryValue = { ...inMemoryOverrides };
+async function readZoneOverride(zoneId: number) {
+  const storageKey = getZoneStorageKey(zoneId);
+  const memoryValue = inMemoryOverrides[storageKey];
 
   if (!(await canUseAsyncStorage())) {
     return memoryValue;
   }
 
   try {
-    const raw = await AsyncStorage.getItem(HOTSPOT_OVERRIDE_KEY);
+    const raw = await AsyncStorage.getItem(storageKey);
     if (!raw) {
       return memoryValue;
     }
 
-    const parsed = JSON.parse(raw) as Record<string, Hotspot[]>;
-    const normalized = Object.fromEntries(
-      Object.entries(parsed ?? {}).map(([zoneId, hotspots]) => [
-        zoneId,
-        normalizeHotspots(hotspots ?? []),
-      ]),
-    );
-
-    inMemoryOverrides = normalized;
+    const normalized = normalizeHotspots(JSON.parse(raw) as Hotspot[]);
+    inMemoryOverrides[storageKey] = normalized;
     return normalized;
   } catch {
     storageMode = "memory";
@@ -81,34 +75,37 @@ async function readAllOverrides() {
 }
 
 export async function getStoredHotspots(zoneId: number, fallbackHotspots: Hotspot[]) {
-  const overrides = await readAllOverrides();
-  const stored = overrides[String(zoneId)];
+  const stored = await readZoneOverride(zoneId);
 
   if (!stored || stored.length === 0) {
     return cloneHotspots(fallbackHotspots);
   }
 
-  return cloneHotspots(stored);
+  const baseById = new Map(fallbackHotspots.map((hotspot) => [hotspot.id, hotspot]));
+
+  return cloneHotspots(
+    stored.map((storedHotspot) => {
+      const baseHotspot = baseById.get(storedHotspot.id);
+      return {
+        ...(baseHotspot ?? storedHotspot),
+        ...storedHotspot,
+      };
+    }),
+  );
 }
 
 export async function saveStoredHotspots(zoneId: number, hotspots: Hotspot[]) {
-  const overrides = await readAllOverrides();
-  const nextOverrides = {
-    ...overrides,
-    [String(zoneId)]: normalizeHotspots(hotspots),
-  };
+  const storageKey = getZoneStorageKey(zoneId);
+  const nextOverride = normalizeHotspots(hotspots);
 
-  inMemoryOverrides = nextOverrides;
+  inMemoryOverrides[storageKey] = nextOverride;
 
   if (!(await canUseAsyncStorage())) {
     return;
   }
 
   try {
-    await AsyncStorage.setItem(
-      HOTSPOT_OVERRIDE_KEY,
-      JSON.stringify(nextOverrides),
-    );
+    await AsyncStorage.setItem(storageKey, JSON.stringify(nextOverride));
   } catch {
     storageMode = "memory";
   }

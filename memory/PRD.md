@@ -41,6 +41,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Added a desktop-accessible Edit link on the Start screen and a native Edit Mode screen to enable editing without manual URL changes
 - 2026-03-31 — Added a 2-second long-press zone-title toggle for in-app EDIT ON/OFF with clipboard copying in Expo Go
 - 2026-03-31 — Added persistent hotspot override storage so drag-edited placements can survive after leaving EDIT MODE
+- 2026-03-31 — Stabilized per-zone hotspot override persistence with rendered-image bounds math for contain-mode maps
 
 ## Prioritized Backlog
 

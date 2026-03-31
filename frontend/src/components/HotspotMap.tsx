@@ -22,15 +22,22 @@ type HotspotMapProps = {
   burstingHotspotId: string | null;
   onHotspotPress: (hotspotId: string) => void;
   onMapTap: (x: number, y: number) => void;
+  onMapBoundsChange: (bounds: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }) => void;
   onHotspotMoveEnd: (hotspotId: string, x: number, y: number) => void;
   onHotspotDeleteRequest: (hotspotId: string) => void;
+  onHotspotSelect: (hotspotId: string) => void;
 };
 
 const toSource = (source: string | number | null) =>
   !source ? undefined : typeof source === "string" ? { uri: source } : source;
 
-const HOTSPOT_TOUCH_SIZE = 56;
-const HOTSPOT_VISUAL_SIZE = 28;
+const HOTSPOT_TOUCH_SIZE = 68;
+const HOTSPOT_VISUAL_SIZE = 46;
 const SPARK_OFFSETS = [
   { x: -12, y: -12 },
   { x: 12, y: -12 },
@@ -50,6 +57,7 @@ type MapHotspotProps = {
   layout: { width: number; height: number };
   isBursting: boolean;
   onTouchStart: () => void;
+  onSelect: (hotspotId: string) => void;
   onPress: (hotspotId: string) => void;
   onMoveEnd: (hotspotId: string, x: number, y: number) => void;
   onDeleteRequest: (hotspotId: string) => void;
@@ -64,6 +72,7 @@ function MapHotspot({
   layout,
   isBursting,
   onTouchStart,
+  onSelect,
   onPress,
   onMoveEnd,
   onDeleteRequest,
@@ -130,6 +139,7 @@ function MapHotspot({
           }
 
           onTouchStart();
+          onSelect(hotspot.id);
           deleteTriggeredRef.current = false;
 
           if (deleteMode) {
@@ -204,16 +214,16 @@ function MapHotspot({
   const renderIcon = () => {
     if (isFound) {
       return (
-        <MaterialCommunityIcons color="#FFF5CC" name="egg-easter" size={18} />
+        <MaterialCommunityIcons color="#FFF5CC" name="egg-easter" size={38} />
       );
     }
 
-    return <Ionicons color="rgba(255,181,87,0.82)" name="flame" size={18} />;
+    return <Ionicons color="#FF7A00" name="flame" size={40} />;
   };
 
   const visualShellStyle = {
-    backgroundColor: isFound ? "rgba(255,255,255,0.16)" : "rgba(8,12,28,0.18)",
-    borderColor: isFound ? "rgba(255,245,204,0.5)" : "rgba(255,181,87,0.32)",
+    backgroundColor: isFound ? "rgba(255,255,255,0.16)" : "rgba(8,12,28,0.08)",
+    borderColor: isFound ? "rgba(255,245,204,0.5)" : "rgba(255,122,0,0.32)",
   };
 
   if (isEditMode) {
@@ -267,7 +277,10 @@ function MapHotspot({
       disabled={isFound}
       hitSlop={18}
       onPress={() => onPress(hotspot.id)}
-      onPressIn={onTouchStart}
+      onPressIn={() => {
+        onTouchStart();
+        onSelect(hotspot.id);
+      }}
       style={[
         styles.hotspotTouchArea,
         {
@@ -319,11 +332,50 @@ export function HotspotMap({
   burstingHotspotId,
   onHotspotPress,
   onMapTap,
+  onMapBoundsChange,
   onHotspotMoveEnd,
   onHotspotDeleteRequest,
+  onHotspotSelect,
 }: HotspotMapProps) {
   const [layout, setLayout] = useState({ width: 1, height: 1 });
   const ignoreNextTapRef = useRef(false);
+
+  const mapBounds = useMemo(() => {
+    if (
+      zone.mapResizeMode !== "contain" ||
+      !zone.mapAspectRatio ||
+      layout.width <= 0 ||
+      layout.height <= 0
+    ) {
+      return { height: layout.height, left: 0, top: 0, width: layout.width };
+    }
+
+    const containerRatio = layout.width / layout.height;
+
+    if (containerRatio > zone.mapAspectRatio) {
+      const height = layout.height;
+      const width = height * zone.mapAspectRatio;
+      return {
+        height,
+        left: (layout.width - width) / 2,
+        top: 0,
+        width,
+      };
+    }
+
+    const width = layout.width;
+    const height = width / zone.mapAspectRatio;
+    return {
+      height,
+      left: 0,
+      top: (layout.height - height) / 2,
+      width,
+    };
+  }, [layout.height, layout.width, zone.mapAspectRatio, zone.mapResizeMode]);
+
+  useEffect(() => {
+    onMapBoundsChange(mapBounds);
+  }, [mapBounds, onMapBoundsChange]);
 
   const handleLayout = (event: LayoutChangeEvent) => {
     setLayout(event.nativeEvent.layout);
@@ -342,8 +394,12 @@ export function HotspotMap({
           return;
         }
 
-        const x = Number(((nativeEvent.locationX / layout.width) * 100).toFixed(1));
-        const y = Number(((nativeEvent.locationY / layout.height) * 100).toFixed(1));
+        const x = clampPercent(
+          ((nativeEvent.locationX - mapBounds.left) / Math.max(mapBounds.width, 1)) * 100,
+        );
+        const y = clampPercent(
+          ((nativeEvent.locationY - mapBounds.top) / Math.max(mapBounds.height, 1)) * 100,
+        );
         onMapTap(x, y);
       }}
       style={styles.wrapper}
@@ -356,28 +412,42 @@ export function HotspotMap({
       >
         <View style={styles.overlay} />
 
-        {hotspots.map((hotspot) => {
-          const isFound = foundHotspots.includes(hotspot.id);
+        <View
+          pointerEvents="box-none"
+          style={[
+            styles.hotspotLayer,
+            {
+              height: mapBounds.height,
+              left: mapBounds.left,
+              top: mapBounds.top,
+              width: mapBounds.width,
+            },
+          ]}
+        >
+          {hotspots.map((hotspot) => {
+            const isFound = foundHotspots.includes(hotspot.id);
 
-          return (
-            <MapHotspot
-              accentColor={zone.accentColor}
-              deleteMode={deleteMode}
-              hotspot={hotspot}
-              isBursting={burstingHotspotId === hotspot.id}
-              isEditMode={isEditMode}
-              isFound={isFound}
-              key={hotspot.id}
-              layout={layout}
-              onDeleteRequest={onHotspotDeleteRequest}
-              onMoveEnd={onHotspotMoveEnd}
-              onPress={onHotspotPress}
-              onTouchStart={() => {
-                ignoreNextTapRef.current = true;
-              }}
-            />
-          );
-        })}
+            return (
+              <MapHotspot
+                accentColor={zone.accentColor}
+                deleteMode={deleteMode}
+                hotspot={hotspot}
+                isBursting={burstingHotspotId === hotspot.id}
+                isEditMode={isEditMode}
+                isFound={isFound}
+                key={hotspot.id}
+                layout={{ height: mapBounds.height, width: mapBounds.width }}
+                onDeleteRequest={onHotspotDeleteRequest}
+                onMoveEnd={onHotspotMoveEnd}
+                onPress={onHotspotPress}
+                onSelect={onHotspotSelect}
+                onTouchStart={() => {
+                  ignoreNextTapRef.current = true;
+                }}
+              />
+            );
+          })}
+        </View>
 
         <View style={styles.labelCard}>
           <Text style={styles.labelText}>{zone.subtitle}</Text>
@@ -428,12 +498,15 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     width: HOTSPOT_VISUAL_SIZE,
   },
+  hotspotLayer: {
+    position: "absolute",
+  },
   spark: {
     backgroundColor: "#FFD166",
     borderRadius: 999,
-    height: 6,
+    height: 8,
     position: "absolute",
-    width: 6,
+    width: 8,
   },
   idLabel: {
     backgroundColor: "rgba(10,16,36,0.74)",

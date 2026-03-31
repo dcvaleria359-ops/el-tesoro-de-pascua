@@ -18,6 +18,7 @@ export type ZoneConfig = {
   subtitle: string;
   accentColor: string;
   mapImage: MediaSource;
+  mapAspectRatio?: number;
   mapResizeMode?: "cover" | "contain";
   completionVideoUrl: MediaSource;
   nextLabel: string;
@@ -37,6 +38,7 @@ export const zones: ZoneConfig[] = [
     subtitle: "Jardín de primavera",
     accentColor: "#EF476F",
     mapImage: require("../assets/maps/zona1.png"),
+    mapAspectRatio: 1536 / 2589,
     mapResizeMode: "contain",
     completionVideoUrl: null,
     nextLabel: "IR A LA ZONA 2",
@@ -53,6 +55,7 @@ export const zones: ZoneConfig[] = [
     subtitle: "Rincones secretos",
     accentColor: "#43B0F1",
     mapImage: placeholders.zone2,
+    mapAspectRatio: 180 / 320,
     completionVideoUrl: null,
     nextLabel: "IR A LA ZONA 3",
     hotspots: [
@@ -68,6 +71,7 @@ export const zones: ZoneConfig[] = [
     subtitle: "Pistas brillantes",
     accentColor: "#FFD166",
     mapImage: placeholders.zone3,
+    mapAspectRatio: 180 / 320,
     completionVideoUrl: null,
     nextLabel: "IR A LA ZONA 4",
     hotspots: [
@@ -83,6 +87,7 @@ export const zones: ZoneConfig[] = [
     subtitle: "La gran sorpresa",
     accentColor: "#06D6A0",
     mapImage: placeholders.zone4,
+    mapAspectRatio: 180 / 320,
     completionVideoUrl: null,
     nextLabel: "VER FINAL",
     hotspots: [

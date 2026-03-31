@@ -68,6 +68,13 @@ export default function ZoneScreen() {
   const [burstingHotspotId, setBurstingHotspotId] = useState<string | null>(
     null,
   );
+  const [mapBounds, setMapBounds] = useState({
+    height: 0,
+    left: 0,
+    top: 0,
+    width: 0,
+  });
+  const [selectedHotspotId, setSelectedHotspotId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const foundHotspots = useMemo(
@@ -147,6 +154,10 @@ export default function ZoneScreen() {
     await saveStoredHotspots(zone.id, normalized);
   };
 
+  const selectedHotspot = editableHotspots.find(
+    (hotspot) => hotspot.id === selectedHotspotId,
+  );
+
   if (isLoading || !zone) {
     return (
       <View style={styles.loading}>
@@ -217,6 +228,7 @@ export default function ZoneScreen() {
             burstingHotspotId={burstingHotspotId}
             deleteMode={deleteMode}
             hotspots={editableHotspots}
+            onHotspotSelect={setSelectedHotspotId}
             onHotspotDeleteRequest={(hotspotId) => {
               Alert.alert(
                 "Delete hotspot?",
@@ -232,6 +244,9 @@ export default function ZoneScreen() {
                       );
 
                       void persistHotspots(nextHotspots);
+                      if (selectedHotspotId === hotspotId) {
+                        setSelectedHotspotId(null);
+                      }
                       showFeedback(`Deleted ${hotspotId}`);
                     },
                   },
@@ -244,8 +259,10 @@ export default function ZoneScreen() {
               );
 
               void persistHotspots(nextHotspots);
+              setSelectedHotspotId(hotspotId);
               showFeedback(`Saved ${hotspotId}: ${x.toFixed(1)},${y.toFixed(1)}`);
             }}
+            onMapBoundsChange={setMapBounds}
             zone={zone}
           />
 
@@ -294,6 +311,7 @@ export default function ZoneScreen() {
                   ];
 
                   void persistHotspots(nextHotspots);
+                  setSelectedHotspotId(nextId);
                   showFeedback(`Added ${nextId}: 50.0,50.0`);
                 }}
                 style={styles.addHotspotButton}
@@ -312,6 +330,12 @@ export default function ZoneScreen() {
                   {deleteMode ? "Delete ON" : "Delete"}
                 </Text>
               </Pressable>
+
+              <View style={styles.debugBadge}>
+                <Text style={styles.debugText}>
+                  {`Map ${Math.round(mapBounds.width)}x${Math.round(mapBounds.height)} · ${selectedHotspot ? `${selectedHotspot.id} ${selectedHotspot.x.toFixed(1)},${selectedHotspot.y.toFixed(1)}` : "No hotspot selected"}`}
+                </Text>
+              </View>
             </View>
           ) : null}
 
@@ -463,6 +487,18 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     fontSize: 13,
     fontWeight: "800",
+  },
+  debugBadge: {
+    backgroundColor: "rgba(10,16,36,0.72)",
+    borderRadius: 14,
+    maxWidth: 220,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  debugText: {
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 11,
+    lineHeight: 15,
   },
   bottomCard: {
     backgroundColor: "rgba(255,255,255,0.94)",
