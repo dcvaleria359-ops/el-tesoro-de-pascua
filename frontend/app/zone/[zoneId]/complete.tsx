@@ -6,7 +6,7 @@ import { ActionButton } from "@/src/components/ActionButton";
 import { MediaStage } from "@/src/components/MediaStage";
 import { useHunt } from "@/src/context/HuntProvider";
 import { getZoneById } from "@/src/huntConfig";
-import { getStoredHotspots } from "@/src/storage/hotspotOverrides";
+import { loadZoneLayout } from "@/src/storage/hotspotOverrides";
 
 export default function ZoneCompleteScreen() {
   const params = useLocalSearchParams<{ edit?: string; zoneId: string }>();
@@ -27,9 +27,9 @@ export default function ZoneCompleteScreen() {
       return;
     }
 
-    getStoredHotspots(zoneId, zone.hotspots).then((hotspots) => {
+    loadZoneLayout(zoneId, zone.hotspots).then((result) => {
       if (isMounted) {
-        setRequiredHotspotCount(hotspots.length);
+        setRequiredHotspotCount(result.hotspots.length);
       }
     });
 

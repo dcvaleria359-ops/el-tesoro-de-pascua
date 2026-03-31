@@ -5,7 +5,18 @@ import { Hotspot } from "@/src/huntConfig";
 let inMemoryOverrides: Record<string, Hotspot[]> = {};
 let storageMode: "unknown" | "async" | "memory" = "unknown";
 
-const getZoneStorageKey = (zoneId: number) => `hunt.hotspots.override.zone${zoneId}`;
+const getZoneStorageKey = (zoneId: number) => `hunt.zoneLayout.${zoneId}`;
+
+export type ZoneLayoutLoadResult = {
+  hotspots: Hotspot[];
+  layoutSource: "Saved" | "Default";
+  storage: "AsyncStorage" | "Memory";
+};
+
+export type ZoneLayoutSaveResult = {
+  ok: boolean;
+  storage: "AsyncStorage" | "Memory";
+};
 
 const cloneHotspots = (hotspots: Hotspot[]) =>
   hotspots.map((hotspot) => ({ ...hotspot }));
@@ -51,6 +62,9 @@ async function canUseAsyncStorage() {
   }
 }
 
+const getStorageLabel = (): "AsyncStorage" | "Memory" =>
+  storageMode === "async" ? "AsyncStorage" : "Memory";
+
 async function readZoneOverride(zoneId: number) {
   const storageKey = getZoneStorageKey(zoneId);
   const memoryValue = inMemoryOverrides[storageKey];
@@ -74,39 +88,64 @@ async function readZoneOverride(zoneId: number) {
   }
 }
 
-export async function getStoredHotspots(zoneId: number, fallbackHotspots: Hotspot[]) {
+export async function loadZoneLayout(
+  zoneId: number,
+  fallbackHotspots: Hotspot[],
+): Promise<ZoneLayoutLoadResult> {
   const stored = await readZoneOverride(zoneId);
 
   if (!stored || stored.length === 0) {
-    return cloneHotspots(fallbackHotspots);
+    return {
+      hotspots: cloneHotspots(fallbackHotspots),
+      layoutSource: "Default",
+      storage: getStorageLabel(),
+    };
   }
 
-  const baseById = new Map(fallbackHotspots.map((hotspot) => [hotspot.id, hotspot]));
-
-  return cloneHotspots(
-    stored.map((storedHotspot) => {
-      const baseHotspot = baseById.get(storedHotspot.id);
-      return {
-        ...(baseHotspot ?? storedHotspot),
-        ...storedHotspot,
-      };
-    }),
-  );
+  return {
+    hotspots: cloneHotspots(stored),
+    layoutSource: "Saved",
+    storage: getStorageLabel(),
+  };
 }
 
-export async function saveStoredHotspots(zoneId: number, hotspots: Hotspot[]) {
+export async function saveStoredHotspots(
+  zoneId: number,
+  hotspots: Hotspot[],
+): Promise<ZoneLayoutSaveResult> {
   const storageKey = getZoneStorageKey(zoneId);
   const nextOverride = normalizeHotspots(hotspots);
 
   inMemoryOverrides[storageKey] = nextOverride;
 
   if (!(await canUseAsyncStorage())) {
-    return;
+    return { ok: true, storage: getStorageLabel() };
   }
 
   try {
     await AsyncStorage.setItem(storageKey, JSON.stringify(nextOverride));
+    return { ok: true, storage: getStorageLabel() };
   } catch {
     storageMode = "memory";
+    return { ok: true, storage: getStorageLabel() };
+  }
+}
+
+export async function resetZoneLayout(
+  zoneId: number,
+): Promise<ZoneLayoutSaveResult> {
+  const storageKey = getZoneStorageKey(zoneId);
+  delete inMemoryOverrides[storageKey];
+
+  if (!(await canUseAsyncStorage())) {
+    return { ok: true, storage: getStorageLabel() };
+  }
+
+  try {
+    await AsyncStorage.removeItem(storageKey);
+    return { ok: true, storage: getStorageLabel() };
+  } catch {
+    storageMode = "memory";
+    return { ok: true, storage: getStorageLabel() };
   }
 }
