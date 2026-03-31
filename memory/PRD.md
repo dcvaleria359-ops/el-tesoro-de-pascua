@@ -56,6 +56,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Fixed EDIT MODE navigation with zone switching and safe exit prompts for unsaved changes
 - 2026-03-31 — Reset Zone 3 saved layout via versioned storage key and replaced it with exactly 4 initial hotspots; also exempted EDIT MODE from zone-unlock redirects
 - 2026-03-31 — Replaced `zona3_end.mp4` with the exact latest uploaded Zone 3 completion video file
+- 2026-03-31 — Added the uploaded final general video as `final.mp4` and changed the post-Zona-4 ending to fullscreen video plus only “VOLVER AL INICIO”
 - 2026-03-31 — Replaced Zone 1 completion asset with the distinct uploaded file `busqueda del tesoro 2 .mp4`
 
 ## Prioritized Backlog
