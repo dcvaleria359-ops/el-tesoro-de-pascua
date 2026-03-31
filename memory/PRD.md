@@ -46,6 +46,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Replaced Zone 1 completion placeholder with a real local `zona1_end.mp4` autoplay video and post-video CTA to Zone 2
 - 2026-03-31 — Updated Zone 2 to use the uploaded `zona2llamas.jpg` map with five new approximate hotspot defaults for fine-tuning
 - 2026-03-31 — Replaced `zona1_end.mp4` with the exact latest uploaded Zone 1 completion video file
+- 2026-03-31 — Made Zone 1 completion navigation explicit and added a debug label to confirm the correct completion screen/video
 
 ## Prioritized Backlog
 

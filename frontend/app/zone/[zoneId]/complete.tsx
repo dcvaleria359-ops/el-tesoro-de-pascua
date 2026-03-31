@@ -9,6 +9,8 @@ import { useHunt } from "@/src/context/HuntProvider";
 import { getZoneById } from "@/src/huntConfig";
 import { loadZoneLayout } from "@/src/storage/hotspotOverrides";
 
+const zoneOneCompletionSource = require("../../../assets/videos/zona1_end.mp4");
+
 export default function ZoneCompleteScreen() {
   const params = useLocalSearchParams<{ edit?: string; zoneId: string }>();
   const zoneId = Number(params.zoneId);
@@ -55,13 +57,11 @@ export default function ZoneCompleteScreen() {
   }
 
   if (zone.id === 1 && zone.completionVideoUrl) {
-    const videoSource =
-      typeof zone.completionVideoUrl === "string"
-        ? { uri: zone.completionVideoUrl }
-        : zone.completionVideoUrl;
-
     return (
       <View style={styles.videoContainer}>
+        <View style={styles.debugLabel}>
+          <Text style={styles.debugLabelText}>COMPLETE ZONE 1: zona1_end.mp4</Text>
+        </View>
         <Video
           isLooping={false}
           onPlaybackStatusUpdate={(status) => {
@@ -71,7 +71,7 @@ export default function ZoneCompleteScreen() {
           }}
           resizeMode={ResizeMode.CONTAIN}
           shouldPlay
-          source={videoSource}
+          source={zoneOneCompletionSource}
           style={styles.video}
           useNativeControls={false}
         />
@@ -133,6 +133,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000",
     flex: 1,
     justifyContent: "flex-end",
+  },
+  debugLabel: {
+    backgroundColor: "rgba(10,16,36,0.78)",
+    borderRadius: 999,
+    left: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    position: "absolute",
+    top: 18,
+    zIndex: 2,
+  },
+  debugLabelText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "800",
   },
   video: {
     backgroundColor: "#000000",

@@ -280,7 +280,11 @@ export default function ZoneScreen() {
                   router.replace(
                     zoneId === 4
                       ? ("/final" as never)
-                      : (completeRoute(zoneId) as never),
+                      : ((zoneId === 1
+                          ? isEditMode
+                            ? "/zone/1/complete?edit=1"
+                            : "/zone/1/complete"
+                          : completeRoute(zoneId)) as never),
                   );
                 }, 950);
               }
