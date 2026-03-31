@@ -4,7 +4,8 @@ Expo mobile adaptation of the requested Easter Hunt experience.
 
 ## What’s included
 
-- Intro screen with fullscreen media stage, **¡EMPEZAR!** and **Saltar**
+- Welcome screen with `pascua1` background and **¡EMPEZAR!** button
+- Separate IntroVideo screen before Zone 1
 - 4 zone flow with fullscreen map placeholders and 4 star hotspots per zone
 - Local progress saved with **AsyncStorage**
 - Zone completion stage after zones 1–3
@@ -15,6 +16,7 @@ Expo mobile adaptation of the requested Easter Hunt experience.
 
 - `frontend/src/huntConfig.ts` — zones, hotspots, placeholder assets, and video slots
 - `frontend/app/index.tsx` — intro/start screen
+- `frontend/app/intro-video.tsx` — fullscreen intro video screen before Zone 1
 - `frontend/app/zone/[zoneId].tsx` — hotspot gameplay and edit mode
 - `frontend/app/zone/[zoneId]/complete.tsx` — completion stage for zones 1–3
 - `frontend/app/final.tsx` — final celebration
@@ -32,7 +34,7 @@ Create these folders if you want a clean media structure:
 
 Suggested filenames:
 
-- `frontend/assets/media/videos/start.mp4`
+- `frontend/assets/videos/intro.mp4`
 - `frontend/assets/media/videos/zone1_end.mp4`
 - `frontend/assets/media/videos/zone2_end.mp4`
 - `frontend/assets/media/videos/zone3_end.mp4`
@@ -49,12 +51,16 @@ Replace the placeholder values with literal `require(...)` calls.
 Example:
 
 ```ts
-export const startVideoUrl = require("../assets/media/videos/start.mp4");
+export const introVideoUrl = require("../assets/videos/intro.mp4");
 export const finalVideoUrl = require("../assets/media/videos/final.mp4");
 
 mapImage: require("../assets/media/maps/zone1.jpg"),
 completionVideoUrl: require("../assets/media/videos/zone1_end.mp4"),
 ```
+
+### Intro Kling video note
+
+Replace `frontend/assets/videos/intro.mp4` with your final Kling video, keeping the **same filename** so the IntroVideo screen continues to work without extra code changes.
 
 ### 3. Adjust hotspot coordinates
 

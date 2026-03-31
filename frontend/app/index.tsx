@@ -20,7 +20,7 @@ export default function Index() {
 
   const startRoute = async () => {
     await startHunt();
-    router.replace(`/zone/${nextZone?.id ?? 1}` as never);
+    router.replace("/intro-video" as never);
   };
 
   if (isLoading) {
