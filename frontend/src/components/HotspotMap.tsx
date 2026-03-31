@@ -64,7 +64,11 @@ export function HotspotMap({
       style={styles.wrapper}
       testID={`zone-map-${zone.id}`}
     >
-      <ImageBackground source={toSource(zone.mapImage)} style={styles.map}>
+      <ImageBackground
+        resizeMode={zone.mapResizeMode ?? "cover"}
+        source={toSource(zone.mapImage)}
+        style={styles.map}
+      >
         <View style={styles.overlay} />
 
         {zone.hotspots.map((hotspot) => {
@@ -125,6 +129,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   map: {
+    backgroundColor: "#0A1024",
     flex: 1,
     justifyContent: "space-between",
   },

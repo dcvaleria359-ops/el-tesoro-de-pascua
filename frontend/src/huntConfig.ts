@@ -18,6 +18,7 @@ export type ZoneConfig = {
   subtitle: string;
   accentColor: string;
   mapImage: MediaSource;
+  mapResizeMode?: "cover" | "contain";
   completionVideoUrl: MediaSource;
   nextLabel: string;
   hotspots: Hotspot[];
@@ -35,7 +36,8 @@ export const zones: ZoneConfig[] = [
     title: "Zona 1",
     subtitle: "Jardín de primavera",
     accentColor: "#EF476F",
-    mapImage: placeholders.zone1,
+    mapImage: require("../assets/maps/zona1.png"),
+    mapResizeMode: "contain",
     completionVideoUrl: null,
     nextLabel: "IR A LA ZONA 2",
     hotspots: [
