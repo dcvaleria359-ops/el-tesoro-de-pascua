@@ -151,10 +151,10 @@ export default function ZoneScreen() {
   }, [isLoading, zone]);
 
   useEffect(() => {
-    if (!isLoading && zone && !isZoneUnlocked(zoneId)) {
+    if (!isLoading && zone && !isEditMode && !isZoneUnlocked(zoneId)) {
       router.replace(zoneRoute(getFirstPlayableZone()) as never);
     }
-  }, [getFirstPlayableZone, isLoading, isZoneUnlocked, zone, zoneId]);
+  }, [getFirstPlayableZone, isEditMode, isLoading, isZoneUnlocked, zone, zoneId]);
 
   const showFeedback = (message: string) => {
     setFeedback(message);
@@ -413,9 +413,9 @@ export default function ZoneScreen() {
             </View>
 
             {isEditMode ? (
-              <View pointerEvents="box-none" style={styles.editNavBar}>
+              <View style={styles.editNavBar}>
                 <Text style={styles.editNavLabel}>Cambiar zona</Text>
-                <View pointerEvents="box-none" style={styles.editNavButtons}>
+                <View style={styles.editNavButtons}>
                   {[1, 2, 3, 4].map((targetZone) => (
                     <Pressable
                       hitSlop={12}

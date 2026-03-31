@@ -54,6 +54,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Added the uploaded `zona4llama.jpg` as the local Zone 4 map and set five initial hotspot coordinates for EDIT MODE refinement
 - 2026-03-31 — Added the uploaded `zona3_end.mp4` as the real Zone 3 completion video with CTA to Zone 4 after playback ends
 - 2026-03-31 — Fixed EDIT MODE navigation with zone switching and safe exit prompts for unsaved changes
+- 2026-03-31 — Reset Zone 3 saved layout via versioned storage key and replaced it with exactly 4 initial hotspots; also exempted EDIT MODE from zone-unlock redirects
 - 2026-03-31 — Replaced Zone 1 completion asset with the distinct uploaded file `busqueda del tesoro 2 .mp4`
 
 ## Prioritized Backlog

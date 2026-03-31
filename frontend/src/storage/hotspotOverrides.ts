@@ -5,7 +5,16 @@ import { Hotspot } from "@/src/huntConfig";
 let inMemoryOverrides: Record<string, Hotspot[]> = {};
 let storageMode: "unknown" | "async" | "memory" = "unknown";
 
-const getZoneStorageKey = (zoneId: number) => `hunt.zoneLayout.${zoneId}`;
+const ZONE_LAYOUT_STORAGE_VERSION: Record<number, number> = {
+  3: 2,
+};
+
+const getZoneStorageKey = (zoneId: number) => {
+  const version = ZONE_LAYOUT_STORAGE_VERSION[zoneId];
+  return version
+    ? `hunt.zoneLayout.${zoneId}.v${version}`
+    : `hunt.zoneLayout.${zoneId}`;
+};
 
 export type ZoneLayoutLoadResult = {
   hotspots: Hotspot[];

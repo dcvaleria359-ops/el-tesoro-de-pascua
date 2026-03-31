@@ -78,12 +78,10 @@ export const zones: ZoneConfig[] = [
     completionVideoUrl: require("../assets/videos/zona3_end.mp4"),
     nextLabel: "IR A LA ZONA 4",
     hotspots: [
-      { id: "z3-a", label: "Llama 1", x: 3.1, y: 97.0 },
-      { id: "z3-b", label: "Llama 2", x: 37.1, y: 45.2 },
-      { id: "z3-c", label: "Llama 3", x: 49.3, y: 44.8 },
-      { id: "z3-d", label: "Llama 4", x: 32.1, y: 48.8 },
-      { id: "z3-e", label: "Llama 5", x: 37.9, y: 54.4 },
-      { id: "z3-f", label: "Llama 6", x: 83.4, y: 65.1 },
+      { id: "z3-a", label: "Llama 1", x: 32.1, y: 48.9 },
+      { id: "z3-b", label: "Llama 2", x: 37.9, y: 54.5 },
+      { id: "z3-c", label: "Llama 3", x: 83.4, y: 65.2 },
+      { id: "z3-d", label: "Llama 4", x: 3.1, y: 97.2 },
     ],
   },
   {
