@@ -24,6 +24,8 @@ type MarkResult = {
 type HuntContextValue = {
   progress: HuntProgress;
   isLoading: boolean;
+  isEditModeEnabled: boolean;
+  enableEditMode: () => void;
   getFoundHotspots: (zoneId: number) => string[];
   getFirstPlayableZone: () => number;
   isZoneUnlocked: (zoneId: number) => boolean;
@@ -37,6 +39,7 @@ const HuntContext = createContext<HuntContextValue | undefined>(undefined);
 export function HuntProvider({ children }: { children: ReactNode }) {
   const [progress, setProgress] = useState<HuntProgress>(defaultProgress);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditModeEnabled, setIsEditModeEnabled] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,6 +71,10 @@ export function HuntProvider({ children }: { children: ReactNode }) {
 
   const getFirstPlayableZone = () =>
     zones.find((zone) => !progress.completedZones.includes(zone.id))?.id ?? 4;
+
+  const enableEditMode = () => {
+    setIsEditModeEnabled(true);
+  };
 
   const startHunt = async () => {
     if (progress.startedAt) {
@@ -132,6 +139,8 @@ export function HuntProvider({ children }: { children: ReactNode }) {
     () => ({
       progress,
       isLoading,
+      isEditModeEnabled,
+      enableEditMode,
       getFoundHotspots,
       getFirstPlayableZone,
       isZoneUnlocked,
@@ -139,7 +148,7 @@ export function HuntProvider({ children }: { children: ReactNode }) {
       resetProgress,
       startHunt,
     }),
-    [isLoading, progress],
+    [isEditModeEnabled, isLoading, progress],
   );
 
   return <HuntContext.Provider value={value}>{children}</HuntContext.Provider>;

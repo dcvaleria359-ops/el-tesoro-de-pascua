@@ -27,18 +27,20 @@ type DraftHotspot = {
 export default function ZoneScreen() {
   const params = useLocalSearchParams<{ edit?: string; zoneId: string }>();
   const zoneId = Number(params.zoneId);
-  const isEditMode = params.edit === "1";
   const zone = getZoneById(zoneId);
 
   const {
     getFirstPlayableZone,
     getFoundHotspots,
+    isEditModeEnabled,
     isLoading,
     isZoneUnlocked,
     markHotspot,
     resetProgress,
     startHunt,
   } = useHunt();
+
+  const isEditMode = params.edit === "1" || isEditModeEnabled;
 
   const [draftHotspots, setDraftHotspots] = useState<DraftHotspot[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);

@@ -77,6 +77,8 @@ Each hotspot uses percentage coordinates:
 
 ## Edit mode
 
+From desktop, click the small **Edit** link in the footer of the Start screen to open the app in edit mode without manually changing the URL.
+
 Open a zone with `?edit=1`.
 
 Examples:

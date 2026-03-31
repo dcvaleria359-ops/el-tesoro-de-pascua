@@ -10,9 +10,10 @@ import { getZoneById } from "@/src/huntConfig";
 export default function ZoneCompleteScreen() {
   const params = useLocalSearchParams<{ edit?: string; zoneId: string }>();
   const zoneId = Number(params.zoneId);
-  const isEditMode = params.edit === "1";
   const zone = getZoneById(zoneId);
-  const { getFirstPlayableZone, getFoundHotspots, isLoading } = useHunt();
+  const { getFirstPlayableZone, getFoundHotspots, isEditModeEnabled, isLoading } = useHunt();
+
+  const isEditMode = params.edit === "1" || isEditModeEnabled;
 
   const zoneRoute = (targetZone: number) =>
     isEditMode ? `/zone/${targetZone}?edit=1` : `/zone/${targetZone}`;

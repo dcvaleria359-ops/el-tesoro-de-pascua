@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { ResizeMode, Video } from "expo-av";
@@ -17,14 +17,16 @@ const toSource = (source: number | string | null) => {
 };
 
 export default function IntroVideoScreen() {
-  const { isLoading, startHunt } = useHunt();
+  const params = useLocalSearchParams<{ edit?: string }>();
+  const { isEditModeEnabled, isLoading, startHunt } = useHunt();
   const [didFinish, setDidFinish] = useState(false);
 
   const videoSource = toSource(introVideoUrl);
+  const isEditMode = params.edit === "1" || isEditModeEnabled;
 
   const handleContinue = async () => {
     await startHunt();
-    router.replace("/zone/1" as never);
+    router.replace((isEditMode ? "/zone/1?edit=1" : "/zone/1") as never);
   };
 
   if (isLoading) {

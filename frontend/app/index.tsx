@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ActionButton } from "@/src/components/ActionButton";
 import { MediaStage } from "@/src/components/MediaStage";
@@ -10,17 +10,59 @@ import {
   startVideoUrl,
 } from "@/src/huntConfig";
 
+const buildEditRoute = (
+  pathname: string,
+  params: Record<string, string | string[] | undefined>,
+) => {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (!value || key === "edit") {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => searchParams.append(key, item));
+      return;
+    }
+
+    searchParams.set(key, value);
+  });
+
+  searchParams.set("edit", "1");
+  return `${pathname}?${searchParams.toString()}`;
+};
+
 export default function Index() {
-  const { getFirstPlayableZone, isLoading, progress, resetProgress, startHunt } =
-    useHunt();
+  const pathname = usePathname();
+  const params = useLocalSearchParams<{ edit?: string }>();
+  const {
+    enableEditMode,
+    getFirstPlayableZone,
+    isEditModeEnabled,
+    isLoading,
+    progress,
+    resetProgress,
+    startHunt,
+  } = useHunt();
 
   const nextZone = getZoneById(getFirstPlayableZone());
   const hasProgress =
     Boolean(progress.startedAt) || progress.completedZones.length > 0;
+  const isEditMode = params.edit === "1" || isEditModeEnabled;
 
   const startRoute = async () => {
     await startHunt();
-    router.replace("/intro-video" as never);
+    router.replace((isEditMode ? "/intro-video?edit=1" : "/intro-video") as never);
+  };
+
+  const openEditMode = () => {
+    if (Platform.OS === "web") {
+      router.replace(buildEditRoute(pathname, params) as never);
+      return;
+    }
+
+    router.push("/edit-mode" as never);
   };
 
   if (isLoading) {
@@ -69,6 +111,10 @@ export default function Index() {
             variant="subtle"
           />
         ) : null}
+
+        <Pressable onPress={openEditMode} style={styles.editLinkWrap}>
+          <Text style={styles.editLink}>Edit</Text>
+        </Pressable>
       </View>
     </MediaStage>
   );
@@ -84,6 +130,16 @@ const styles = StyleSheet.create({
   card: {
     gap: 12,
     width: "100%",
+  },
+  editLinkWrap: {
+    alignItems: "center",
+    marginTop: 4,
+  },
+  editLink: {
+    color: "rgba(255,255,255,0.58)",
+    fontSize: 12,
+    fontWeight: "500",
+    textDecorationLine: "underline",
   },
   progressPill: {
     alignSelf: "center",
