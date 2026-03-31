@@ -48,6 +48,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Replaced `zona1_end.mp4` with the exact latest uploaded Zone 1 completion video file
 - 2026-03-31 — Made Zone 1 completion navigation explicit and added a debug label to confirm the correct completion screen/video
 - 2026-03-31 — Removed backend deployment risk by keeping the frontend static-only path and making the template status endpoint cheap and bounded
+- 2026-03-31 — Replaced Zone 1 completion asset with the distinct uploaded file `busqueda del tesoro 2 .mp4`
 
 ## Prioritized Backlog
 
