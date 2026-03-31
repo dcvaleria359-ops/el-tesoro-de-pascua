@@ -58,12 +58,6 @@ export default function Index() {
           size="hero"
           testID="start-button"
         />
-        <ActionButton
-          label="Saltar"
-          onPress={startRoute}
-          testID="skip-button"
-          variant="ghost"
-        />
 
         {hasProgress ? (
           <ActionButton

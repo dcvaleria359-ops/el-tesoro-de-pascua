@@ -73,9 +73,9 @@ export function MediaStage({
         {gradientOverlay ? (
           <LinearGradient
             colors={[
-              "rgba(5, 12, 26, 0.22)",
-              "rgba(5, 12, 26, 0.34)",
-              "rgba(5, 12, 26, 0.78)",
+              "rgba(5, 12, 26, 0.10)",
+              "rgba(5, 12, 26, 0.12)",
+              "rgba(5, 12, 26, 0.15)",
             ]}
             locations={[0, 0.48, 1]}
             style={styles.scrim}

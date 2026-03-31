@@ -32,6 +32,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Added edit mode to capture x/y map coordinates
 - 2026-03-31 — Updated the visible app title to “LOS TESOROS DE PASCUA”
 - 2026-03-31 — Replaced the start-screen background with the uploaded `pascua1` image and added a subtle dark gradient overlay
+- 2026-03-31 — Upgraded `pascua1` to a sharp full-size welcome background and removed the “Saltar” button
 
 ## Prioritized Backlog
 
