@@ -72,8 +72,9 @@ export const zones: ZoneConfig[] = [
     title: "Zona 3",
     subtitle: "Pistas brillantes",
     accentColor: "#FFD166",
-    mapImage: placeholders.zone3,
-    mapAspectRatio: 180 / 320,
+    mapImage: require("../assets/maps/zona3llamas.jpg"),
+    mapAspectRatio: 1080 / 1920,
+    mapResizeMode: "contain",
     completionVideoUrl: null,
     nextLabel: "IR A LA ZONA 4",
     hotspots: [

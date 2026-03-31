@@ -50,6 +50,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Removed backend deployment risk by keeping the frontend static-only path and making the template status endpoint cheap and bounded
 - 2026-03-31 — Cleaned gameplay UI to full-screen maps with floating HUD, entry/found toasts, and no fixed bottom panel
 - 2026-03-31 — Added the uploaded `zona2_end.mp4` as the real Zone 2 completion video with CTA to Zone 3 after playback ends
+- 2026-03-31 — Added the uploaded `zona3llamas.jpg` as the local Zone 3 map with contain rendering and hotspots on top
 - 2026-03-31 — Replaced Zone 1 completion asset with the distinct uploaded file `busqueda del tesoro 2 .mp4`
 
 ## Prioritized Backlog
