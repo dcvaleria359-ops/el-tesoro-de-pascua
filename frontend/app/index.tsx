@@ -36,6 +36,7 @@ export default function Index() {
       autoPlay
       eyebrow="Aventura familiar"
       fallbackImage={startPlaceholderImage}
+      gradientOverlay
       isLooping
       mediaSource={startVideoUrl}
       showPlayButton

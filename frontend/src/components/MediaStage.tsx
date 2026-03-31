@@ -1,6 +1,7 @@
 import { ReactNode, useMemo, useState } from "react";
 import { ImageBackground, StyleSheet, Text, View } from "react-native";
 import { ResizeMode, Video } from "expo-av";
+import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActionButton } from "@/src/components/ActionButton";
@@ -17,6 +18,7 @@ type MediaStageProps = {
   isLooping?: boolean;
   muted?: boolean;
   showPlayButton?: boolean;
+  gradientOverlay?: boolean;
 };
 
 const toSource = (source: MediaSource) => {
@@ -38,6 +40,7 @@ export function MediaStage({
   isLooping = false,
   muted = true,
   showPlayButton = false,
+  gradientOverlay = false,
 }: MediaStageProps) {
   const [useVideo, setUseVideo] = useState(Boolean(mediaSource));
   const [shouldPlay, setShouldPlay] = useState(autoPlay);
@@ -67,7 +70,19 @@ export function MediaStage({
           />
         ) : null}
 
-        <View style={styles.scrim} />
+        {gradientOverlay ? (
+          <LinearGradient
+            colors={[
+              "rgba(5, 12, 26, 0.22)",
+              "rgba(5, 12, 26, 0.34)",
+              "rgba(5, 12, 26, 0.78)",
+            ]}
+            locations={[0, 0.48, 1]}
+            style={styles.scrim}
+          />
+        ) : (
+          <View style={styles.scrim} />
+        )}
 
         {!videoSource ? (
           <View style={styles.placeholderPill}>

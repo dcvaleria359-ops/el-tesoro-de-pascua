@@ -1,3 +1,5 @@
+import { pascua1Image } from "@/src/pascua1Image";
+
 const placeholders = require("./generatedPlaceholderImages.json") as Record<string, string>;
 
 export type MediaSource = number | string | null;
@@ -23,7 +25,7 @@ export type ZoneConfig = {
 
 export const startVideoUrl: MediaSource = null;
 export const finalVideoUrl: MediaSource = null;
-export const startPlaceholderImage: MediaSource = placeholders.start;
+export const startPlaceholderImage: MediaSource = pascua1Image;
 export const finalPlaceholderImage: MediaSource = placeholders.final;
 
 export const zones: ZoneConfig[] = [
