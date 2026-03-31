@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ResizeMode, Video } from "expo-av";
 
 import { ActionButton } from "@/src/components/ActionButton";
 import { MediaStage } from "@/src/components/MediaStage";
@@ -16,6 +17,7 @@ export default function ZoneCompleteScreen() {
 
   const isEditMode = params.edit === "1" || isEditModeEnabled;
   const [requiredHotspotCount, setRequiredHotspotCount] = useState(zone?.hotspots.length ?? 4);
+  const [didFinish, setDidFinish] = useState(false);
 
   const zoneRoute = (targetZone: number) =>
     isEditMode ? `/zone/${targetZone}?edit=1` : `/zone/${targetZone}`;
@@ -48,6 +50,42 @@ export default function ZoneCompleteScreen() {
     return (
       <View style={styles.loading}>
         <ActivityIndicator color="#EF476F" size="large" />
+      </View>
+    );
+  }
+
+  if (zone.id === 1 && zone.completionVideoUrl) {
+    const videoSource =
+      typeof zone.completionVideoUrl === "string"
+        ? { uri: zone.completionVideoUrl }
+        : zone.completionVideoUrl;
+
+    return (
+      <View style={styles.videoContainer}>
+        <Video
+          isLooping={false}
+          onPlaybackStatusUpdate={(status) => {
+            if (status.isLoaded && status.didJustFinish) {
+              setDidFinish(true);
+            }
+          }}
+          resizeMode={ResizeMode.CONTAIN}
+          shouldPlay
+          source={videoSource}
+          style={styles.video}
+          useNativeControls={false}
+        />
+
+        {didFinish ? (
+          <View style={styles.videoFooter}>
+            <ActionButton
+              label={zone.nextLabel}
+              onPress={() => router.replace(zoneRoute(zoneId + 1) as never)}
+              size="hero"
+              testID="next-zone-button"
+            />
+          </View>
+        ) : null}
       </View>
     );
   }
@@ -90,6 +128,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#0A1024",
     flex: 1,
     justifyContent: "center",
+  },
+  videoContainer: {
+    backgroundColor: "#000000",
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  video: {
+    backgroundColor: "#000000",
+    height: "100%",
+    position: "absolute",
+    width: "100%",
+  },
+  videoFooter: {
+    backgroundColor: "rgba(0,0,0,0.32)",
+    paddingHorizontal: 20,
+    paddingBottom: 28,
+    paddingTop: 12,
   },
   card: {
     gap: 14,

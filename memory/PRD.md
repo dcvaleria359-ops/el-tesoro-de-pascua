@@ -43,6 +43,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Added persistent hotspot override storage so drag-edited placements can survive after leaving EDIT MODE
 - 2026-03-31 — Stabilized per-zone hotspot override persistence with rendered-image bounds math for contain-mode maps
 - 2026-03-31 — Switched EDIT MODE to explicit draft/save/cancel zone layouts with storage/load source debug info
+- 2026-03-31 — Replaced Zone 1 completion placeholder with a real local `zona1_end.mp4` autoplay video and post-video CTA to Zone 2
 
 ## Prioritized Backlog
 

@@ -40,7 +40,7 @@ export const zones: ZoneConfig[] = [
     mapImage: require("../assets/maps/zona1.png"),
     mapAspectRatio: 1536 / 2589,
     mapResizeMode: "contain",
-    completionVideoUrl: null,
+    completionVideoUrl: require("../assets/videos/zona1_end.mp4"),
     nextLabel: "IR A LA ZONA 2",
     hotspots: [
       { id: "z1-a", label: "Flor", x: 18.4, y: 24.6 },
