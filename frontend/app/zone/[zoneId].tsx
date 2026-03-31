@@ -205,6 +205,64 @@ export default function ZoneScreen() {
   const selectedHotspot = activeHotspots.find(
     (hotspot) => hotspot.id === selectedHotspotId,
   );
+  const hasUnsavedChanges =
+    JSON.stringify(normalizeHotspots(draftHotspots)) !==
+    JSON.stringify(normalizeHotspots(savedHotspots));
+
+  const switchToEditZone = (targetZone: number) => {
+    const goToZone = () => {
+      router.replace(`/zone/${targetZone}?edit=1` as never);
+    };
+
+    if (!hasUnsavedChanges) {
+      goToZone();
+      return;
+    }
+
+    Alert.alert(
+      "Guardar cambios",
+      "Tienes cambios sin guardar. ¿Quieres guardarlos antes de cambiar de zona?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Guardar",
+          onPress: async () => {
+            await saveDraftHotspots();
+            goToZone();
+          },
+        },
+      ],
+    );
+  };
+
+  const exitEditMode = () => {
+    const leaveEditMode = () => {
+      if (isEditModeEnabled) {
+        toggleEditMode();
+      }
+      router.replace(`/zone/${zoneId}` as never);
+    };
+
+    if (!hasUnsavedChanges) {
+      leaveEditMode();
+      return;
+    }
+
+    Alert.alert(
+      "Guardar cambios",
+      "Tienes cambios sin guardar. ¿Quieres guardarlos antes de salir de editar?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Guardar",
+          onPress: async () => {
+            await saveDraftHotspots();
+            leaveEditMode();
+          },
+        },
+      ],
+    );
+  };
 
   if (isLoading || !zone) {
     return (
@@ -354,6 +412,36 @@ export default function ZoneScreen() {
               </View>
             </View>
 
+            {isEditMode ? (
+              <View style={styles.editNavBar}>
+                <Text style={styles.editNavLabel}>Cambiar zona</Text>
+                <View style={styles.editNavButtons}>
+                  {[1, 2, 3, 4].map((targetZone) => (
+                    <Pressable
+                      key={targetZone}
+                      onPress={() => switchToEditZone(targetZone)}
+                      style={[
+                        styles.zoneSwitchButton,
+                        targetZone === zoneId && styles.zoneSwitchButtonActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.zoneSwitchButtonText,
+                          targetZone === zoneId && styles.zoneSwitchButtonTextActive,
+                        ]}
+                      >
+                        Zona {targetZone}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable onPress={exitEditMode} style={styles.exitEditButton}>
+                  <Text style={styles.exitEditButtonText}>Salir de editar</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
             {feedback ? (
               <View pointerEvents="none" style={styles.feedbackCard}>
                 <Text style={styles.feedbackText}>{feedback}</Text>
@@ -487,6 +575,52 @@ const styles = StyleSheet.create({
     right: 16,
     top: 14,
   },
+  editNavBar: {
+    gap: 8,
+    left: 16,
+    position: "absolute",
+    right: 16,
+    top: 68,
+  },
+  editNavLabel: {
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  editNavButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  zoneSwitchButton: {
+    backgroundColor: "rgba(10,16,36,0.72)",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  zoneSwitchButtonActive: {
+    backgroundColor: "rgba(255,209,102,0.22)",
+  },
+  zoneSwitchButtonText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  zoneSwitchButtonTextActive: {
+    color: "#FFD166",
+  },
+  exitEditButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(239,71,111,0.9)",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  exitEditButtonText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "800",
+  },
   editBadge: {
     backgroundColor: "rgba(255, 209, 102, 0.22)",
     borderRadius: 999,
@@ -517,7 +651,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     position: "absolute",
-    top: 86,
+    top: 168,
   },
   feedbackText: {
     color: "#FFFFFF",
