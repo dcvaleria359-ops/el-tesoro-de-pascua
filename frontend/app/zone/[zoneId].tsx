@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
+import * as Clipboard from "expo-clipboard";
 import {
   ActivityIndicator,
   Keyboard,
@@ -41,6 +42,7 @@ export default function ZoneScreen() {
 
   const [draftHotspots, setDraftHotspots] = useState<DraftHotspot[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [lastCopied, setLastCopied] = useState<string | null>(null);
 
   const foundHotspots = useMemo(
     () => getFoundHotspots(zoneId),
@@ -123,16 +125,21 @@ export default function ZoneScreen() {
                 }, 950);
               }
             }}
-            onMapTap={(x, y) => {
+            onMapTap={async (x, y) => {
               if (!isEditMode) {
                 return;
               }
+
+              const copiedValue = `xPercent: ${x.toFixed(1)}, yPercent: ${y.toFixed(1)}`;
+
+              await Clipboard.setStringAsync(copiedValue);
+              setLastCopied(copiedValue);
 
               setDraftHotspots((current) => [
                 ...current.slice(-3),
                 { id: `draft-${Date.now()}`, x, y },
               ]);
-              showFeedback(`x ${x}% · y ${y}%`);
+              showFeedback(`Copied ${x.toFixed(1)} / ${y.toFixed(1)}`);
             }}
             previewHotspots={draftHotspots}
             zone={zone}
@@ -166,18 +173,35 @@ export default function ZoneScreen() {
 
             {isEditMode ? (
               <View style={styles.editCard}>
-                <Text style={styles.editTitle}>Modo edición</Text>
+                <Text style={styles.editTitle}>Edit mode</Text>
                 <Text style={styles.editBody}>
-                  Toca el mapa para capturar coordenadas rápidas en porcentaje.
+                  Tap the map to capture percentage coordinates and copy them to the clipboard.
                 </Text>
+                {lastCopied ? (
+                  <View style={styles.editSection}>
+                    <Text style={styles.editSectionTitle}>Last copied</Text>
+                    <Text style={styles.editCode}>{lastCopied}</Text>
+                  </View>
+                ) : null}
+                <View style={styles.editSection}>
+                  <Text style={styles.editSectionTitle}>Existing hotspots</Text>
+                  {zone.hotspots.map((hotspot) => (
+                    <Text key={hotspot.id} style={styles.editCode}>
+                      {hotspot.id}: xPercent {hotspot.x.toFixed(1)} · yPercent {hotspot.y.toFixed(1)}
+                    </Text>
+                  ))}
+                </View>
+                <View style={styles.editSection}>
+                  <Text style={styles.editSectionTitle}>Recent taps</Text>
                 {draftHotspots
                   .slice()
                   .reverse()
                   .map((hotspot) => (
                     <Text key={hotspot.id} style={styles.editCode}>
-                      x: {hotspot.x.toFixed(1)} · y: {hotspot.y.toFixed(1)}
+                      xPercent: {hotspot.x.toFixed(1)} · yPercent: {hotspot.y.toFixed(1)}
                     </Text>
                   ))}
+                </View>
               </View>
             ) : null}
 
@@ -305,6 +329,16 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.82)",
     fontSize: 13,
     lineHeight: 18,
+  },
+  editSection: {
+    gap: 4,
+    marginTop: 4,
+  },
+  editSectionTitle: {
+    color: "#FFD166",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
   },
   editCode: {
     color: "#FFFFFF",

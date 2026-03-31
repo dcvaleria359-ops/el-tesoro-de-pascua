@@ -87,7 +87,9 @@ Examples:
 In edit mode:
 
 - tap anywhere on the map
-- the app shows `x` / `y` percentages
+- the app shows `xPercent` / `yPercent`
+- the app copies the tapped coordinates to the clipboard
+- the app shows the existing hotspots with their saved coordinates
 - a temporary preview hotspot appears
 - copy those values into `frontend/src/huntConfig.ts`
 
