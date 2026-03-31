@@ -542,10 +542,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   topLeftHud: {
+    elevation: 30,
     gap: 8,
     left: 16,
     position: "absolute",
     top: 14,
+    zIndex: 30,
   },
   resetIconButton: {
     alignItems: "center",
@@ -570,17 +572,21 @@ const styles = StyleSheet.create({
   },
   topRightWrap: {
     alignItems: "flex-end",
+    elevation: 30,
     gap: 8,
     position: "absolute",
     right: 16,
     top: 14,
+    zIndex: 30,
   },
   editNavBar: {
+    elevation: 30,
     gap: 8,
     left: 16,
     position: "absolute",
     right: 16,
     top: 68,
+    zIndex: 30,
   },
   editNavLabel: {
     color: "rgba(255,255,255,0.82)",
@@ -648,10 +654,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     backgroundColor: "rgba(10,16,36,0.84)",
     borderRadius: 999,
+    elevation: 30,
     paddingHorizontal: 16,
     paddingVertical: 12,
     position: "absolute",
     top: 168,
+    zIndex: 30,
   },
   feedbackText: {
     color: "#FFFFFF",
@@ -660,9 +668,11 @@ const styles = StyleSheet.create({
   },
   editControls: {
     bottom: 24,
+    elevation: 30,
     gap: 10,
     position: "absolute",
     right: 24,
+    zIndex: 30,
   },
   addHotspotButton: {
     backgroundColor: "rgba(10,16,36,0.9)",
