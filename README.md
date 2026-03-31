@@ -97,6 +97,19 @@ In edit mode:
 
 - No auth
 - No database
-- Progress is stored locally on the device with AsyncStorage
+- The app now uses a **safe storage wrapper**:
+  - If AsyncStorage is available in Expo/device runtime, progress is persisted locally
+  - If AsyncStorage is unavailable or throws, the app automatically falls back to **in-memory storage** so it does not crash
+
+### Current behavior
+
+- Persistence is **enabled only when AsyncStorage works correctly**
+- If the fallback is active, progress still works during the current session but resets after app reload/restart
+
+### How to enable persistence later
+
+- Keep `@react-native-async-storage/async-storage` installed
+- Make sure the target Expo/device build exposes the native AsyncStorage module correctly
+- Once AsyncStorage is available, the wrapper will use it automatically without UI changes
 
 To clear progress from the UI, use **Reiniciar progreso** or **Reiniciar**.

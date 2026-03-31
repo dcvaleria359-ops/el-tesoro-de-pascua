@@ -37,6 +37,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Added the uploaded intro video as a local asset at `assets/videos/intro.mp4` and reveal the CTA only after playback ends
 - 2026-03-31 — Enhanced edit mode to copy tapped hotspot coordinates to the clipboard and list existing hotspot coordinates
 - 2026-03-31 — Added the uploaded `frontend/assets/maps/zona1.png` as the local Zone 1 map with contain rendering and hotspots on top
+- 2026-03-31 — Made progress storage crash-safe with AsyncStorage detection and automatic in-memory fallback
 
 ## Prioritized Backlog
 
