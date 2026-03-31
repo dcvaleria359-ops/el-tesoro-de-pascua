@@ -24,7 +24,7 @@ export type ZoneConfig = {
 };
 
 export const startVideoUrl: MediaSource = null;
-export const introVideoUrl: MediaSource = null;
+export const introVideoUrl: MediaSource = require("../assets/videos/intro.mp4");
 export const finalVideoUrl: MediaSource = null;
 export const startPlaceholderImage: MediaSource = pascua1Image;
 export const finalPlaceholderImage: MediaSource = placeholders.final;

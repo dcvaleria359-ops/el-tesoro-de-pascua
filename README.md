@@ -62,6 +62,8 @@ completionVideoUrl: require("../assets/media/videos/zone1_end.mp4"),
 
 Replace `frontend/assets/videos/intro.mp4` with your final Kling video, keeping the **same filename** so the IntroVideo screen continues to work without extra code changes.
 
+The IntroVideo screen now loads the file locally through `require("../assets/videos/intro.mp4")` from `frontend/src/huntConfig.ts`.
+
 ### 3. Adjust hotspot coordinates
 
 Each hotspot uses percentage coordinates:

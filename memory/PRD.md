@@ -34,6 +34,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Replaced the start-screen background with the uploaded `pascua1` image and added a subtle dark gradient overlay
 - 2026-03-31 — Upgraded `pascua1` to a sharp full-size welcome background and removed the “Saltar” button
 - 2026-03-31 — Added a new IntroVideo step between the welcome screen and Zone 1, ready for `assets/videos/intro.mp4`
+- 2026-03-31 — Added the uploaded intro video as a local asset at `assets/videos/intro.mp4` and reveal the CTA only after playback ends
 
 ## Prioritized Backlog
 
