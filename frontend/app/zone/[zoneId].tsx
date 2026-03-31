@@ -211,7 +211,7 @@ export default function ZoneScreen() {
 
   const switchToEditZone = (targetZone: number) => {
     const goToZone = () => {
-      router.replace(`/zone/${targetZone}?edit=1` as never);
+      router.push(`/zone/${targetZone}?edit=1` as never);
     };
 
     if (!hasUnsavedChanges) {
@@ -413,11 +413,12 @@ export default function ZoneScreen() {
             </View>
 
             {isEditMode ? (
-              <View style={styles.editNavBar}>
+              <View pointerEvents="box-none" style={styles.editNavBar}>
                 <Text style={styles.editNavLabel}>Cambiar zona</Text>
-                <View style={styles.editNavButtons}>
+                <View pointerEvents="box-none" style={styles.editNavButtons}>
                   {[1, 2, 3, 4].map((targetZone) => (
                     <Pressable
+                      hitSlop={12}
                       key={targetZone}
                       onPress={() => switchToEditZone(targetZone)}
                       style={[
