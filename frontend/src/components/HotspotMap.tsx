@@ -8,6 +8,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -85,38 +86,17 @@ function MapHotspot({
   const deleteTriggeredRef = useRef(false);
 
   useEffect(() => {
-    if (!isBursting) {
-      return;
-    }
-
+    if (!isBursting) return;
     scale.setValue(1);
     spark.setValue(0);
-
     Animated.parallel([
       Animated.sequence([
-        Animated.timing(scale, {
-          duration: 140,
-          toValue: 1.45,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scale, {
-          friction: 5,
-          tension: 120,
-          toValue: 1,
-          useNativeDriver: true,
-        }),
+        Animated.timing(scale, { duration: 140, toValue: 1.45, useNativeDriver: true }),
+        Animated.spring(scale, { friction: 5, tension: 120, toValue: 1, useNativeDriver: true }),
       ]),
       Animated.sequence([
-        Animated.timing(spark, {
-          duration: 160,
-          toValue: 1,
-          useNativeDriver: true,
-        }),
-        Animated.timing(spark, {
-          duration: 220,
-          toValue: 0,
-          useNativeDriver: true,
-        }),
+        Animated.timing(spark, { duration: 160, toValue: 1, useNativeDriver: true }),
+        Animated.timing(spark, { duration: 220, toValue: 0, useNativeDriver: true }),
       ]),
     ]).start();
   }, [isBursting, scale, spark]);
@@ -135,14 +115,10 @@ function MapHotspot({
           isEditMode &&
           (Math.abs(gestureState.dx) > 2 || Math.abs(gestureState.dy) > 2),
         onPanResponderGrant: () => {
-          if (!isEditMode) {
-            return;
-          }
-
+          if (!isEditMode) return;
           onTouchStart();
           onSelect(hotspot.id);
           deleteTriggeredRef.current = false;
-
           if (deleteMode) {
             deleteTimerRef.current = setTimeout(() => {
               deleteTriggeredRef.current = true;
@@ -151,36 +127,28 @@ function MapHotspot({
           }
         },
         onPanResponderMove: (_, gestureState) => {
-          if (!isEditMode || deleteTriggeredRef.current) {
-            return;
-          }
-
+          if (!isEditMode || deleteTriggeredRef.current) return;
           if (Math.abs(gestureState.dx) > 4 || Math.abs(gestureState.dy) > 4) {
             clearDeleteTimer();
           }
-
           pan.setValue({ x: gestureState.dx, y: gestureState.dy });
         },
         onPanResponderRelease: (_, gestureState) => {
           clearDeleteTimer();
-
           if (!isEditMode || deleteTriggeredRef.current) {
             pan.setValue({ x: 0, y: 0 });
             return;
           }
-
           if (Math.abs(gestureState.dx) < 2 && Math.abs(gestureState.dy) < 2) {
             pan.setValue({ x: 0, y: 0 });
             return;
           }
-
           const nextX = clampPercent(
             hotspot.x + (gestureState.dx / Math.max(layout.width, 1)) * 100,
           );
           const nextY = clampPercent(
             hotspot.y + (gestureState.dy / Math.max(layout.height, 1)) * 100,
           );
-
           pan.setValue({ x: 0, y: 0 });
           onMoveEnd(hotspot.id, nextX, nextY);
         },
@@ -192,33 +160,18 @@ function MapHotspot({
         onStartShouldSetPanResponder: () => isEditMode,
       }),
     [
-      accentColor,
-      deleteMode,
-      hotspot.id,
-      hotspot.x,
-      hotspot.y,
-      isEditMode,
-      layout.height,
-      layout.width,
-      onDeleteRequest,
-      onMoveEnd,
-      onTouchStart,
-      pan,
+      accentColor, deleteMode, hotspot.id, hotspot.x, hotspot.y,
+      isEditMode, layout.height, layout.width, onDeleteRequest,
+      onMoveEnd, onTouchStart, pan,
     ],
   );
 
-  const sparkOpacity = spark.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
+  const sparkOpacity = spark.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
   const renderIcon = () => {
     if (isFound) {
-      return (
-        <MaterialCommunityIcons color="#FFF5CC" name="egg-easter" size={38} />
-      );
+      return <MaterialCommunityIcons color="#FFF5CC" name="egg-easter" size={38} />;
     }
-
     return <Ionicons color="#FF7A00" name="flame" size={40} />;
   };
 
@@ -256,13 +209,8 @@ function MapHotspot({
             ]}
           />
         ))}
-
         <Animated.View
-          style={[
-            styles.hotspotVisual,
-            visualShellStyle,
-            { transform: [{ scale }] },
-          ]}
+          style={[styles.hotspotVisual, visualShellStyle, { transform: [{ scale }] }]}
         >
           {renderIcon()}
         </Animated.View>
@@ -284,10 +232,7 @@ function MapHotspot({
       }}
       style={[
         styles.hotspotTouchArea,
-        {
-          left: `${hotspot.x}%`,
-          top: `${hotspot.y}%`,
-        },
+        { left: `${hotspot.x}%`, top: `${hotspot.y}%` },
       ]}
       testID={`hotspot-${hotspot.id}`}
     >
@@ -307,15 +252,11 @@ function MapHotspot({
           ]}
         />
       ))}
-
       <Animated.View
         style={[
           styles.hotspotVisual,
           visualShellStyle,
-          {
-            opacity: isFound ? 1 : 0.78,
-            transform: [{ scale }],
-          },
+          { opacity: isFound ? 1 : 0.78, transform: [{ scale }] },
         ]}
       >
         {renderIcon()}
@@ -338,8 +279,18 @@ export function HotspotMap({
   onHotspotDeleteRequest,
   onHotspotSelect,
 }: HotspotMapProps) {
-  const [layout, setLayout] = useState({ width: 1, height: 1 });
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const containerWidth = Platform.OS === "web" ? Math.min(windowWidth, 390) : windowWidth;
+  const containerHeight = windowHeight;
+
+  const [layout, setLayout] = useState({ width: containerWidth, height: containerHeight });
   const ignoreNextTapRef = useRef(false);
+
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      setLayout({ width: containerWidth, height: containerHeight });
+    }
+  }, [containerWidth, containerHeight]);
 
   const mapBounds = useMemo(() => {
     if (
@@ -356,22 +307,12 @@ export function HotspotMap({
     if (containerRatio > zone.mapAspectRatio) {
       const height = layout.height;
       const width = height * zone.mapAspectRatio;
-      return {
-        height,
-        left: (layout.width - width) / 2,
-        top: 0,
-        width,
-      };
+      return { height, left: (layout.width - width) / 2, top: 0, width };
     }
 
     const width = layout.width;
     const height = width / zone.mapAspectRatio;
-    return {
-      height,
-      left: 0,
-      top: (layout.height - height) / 2,
-      width,
-    };
+    return { height, left: 0, top: (layout.height - height) / 2, width };
   }, [layout.height, layout.width, zone.mapAspectRatio, zone.mapResizeMode]);
 
   useEffect(() => {
@@ -379,26 +320,136 @@ export function HotspotMap({
   }, [mapBounds, onMapBoundsChange]);
 
   const handleLayout = (event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout;
-    setLayout({ width, height });
+    if (Platform.OS !== "web") {
+      const { width, height } = event.nativeEvent.layout;
+      setLayout({ width, height });
+    }
   };
 
   return (
-    <View style={styles.outerWrapper}>
-      <Pressable
-        onLayout={handleLayout}
-        onPress={({ nativeEvent }) => {
-          if (!isEditMode) {
-            return;
-          }
+    <Pressable
+      onLayout={handleLayout}
+      onPress={({ nativeEvent }) => {
+        if (!isEditMode) return;
+        if (ignoreNextTapRef.current) {
+          ignoreNextTapRef.current = false;
+          return;
+        }
+        const x = clampPercent(
+          ((nativeEvent.locationX - mapBounds.left) / Math.max(mapBounds.width, 1)) * 100,
+        );
+        const y = clampPercent(
+          ((nativeEvent.locationY - mapBounds.top) / Math.max(mapBounds.height, 1)) * 100,
+        );
+        onMapTap(x, y);
+      }}
+      style={styles.wrapper}
+      testID={`zone-map-${zone.id}`}
+    >
+      <ImageBackground
+        resizeMode={zone.mapResizeMode ?? "cover"}
+        source={toSource(zone.mapImage)}
+        style={[
+          styles.map,
+          Platform.OS === "web" ? { width: containerWidth, height: containerHeight } : {},
+        ]}
+      >
+        <View style={styles.overlay} />
+        <View
+          pointerEvents="box-none"
+          style={[
+            styles.hotspotLayer,
+            {
+              height: mapBounds.height,
+              left: mapBounds.left,
+              top: mapBounds.top,
+              width: mapBounds.width,
+            },
+          ]}
+        >
+          {hotspots.map((hotspot) => {
+            const isFound = foundHotspots.includes(hotspot.id);
+            return (
+              <MapHotspot
+                accentColor={zone.accentColor}
+                deleteMode={deleteMode}
+                hotspot={hotspot}
+                isBursting={burstingHotspotId === hotspot.id}
+                isEditMode={isEditMode}
+                isFound={isFound}
+                key={hotspot.id}
+                layout={{ height: mapBounds.height, width: mapBounds.width }}
+                onDeleteRequest={onHotspotDeleteRequest}
+                onMoveEnd={onHotspotMoveEnd}
+                onPress={onHotspotPress}
+                onSelect={onHotspotSelect}
+                onTouchStart={() => { ignoreNextTapRef.current = true; }}
+              />
+            );
+          })}
+        </View>
+      </ImageBackground>
+    </Pressable>
+  );
+}
 
-          if (ignoreNextTapRef.current) {
-            ignoreNextTapRef.current = false;
-            return;
-          }
-
-          const x = clampPercent(
-            ((nativeEvent.locationX - mapBounds.left) /
-              Math.max(mapBounds.width, 1)) *
-              100,
-          );
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    width: "100%",
+  },
+  map: {
+    backgroundColor: "#0A1024",
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(10, 16, 36, 0.16)",
+  },
+  hotspotTouchArea: {
+    alignItems: "center",
+    height: HOTSPOT_TOUCH_SIZE,
+    justifyContent: "center",
+    marginLeft: -(HOTSPOT_TOUCH_SIZE / 2),
+    marginTop: -(HOTSPOT_TOUCH_SIZE / 2),
+    position: "absolute",
+    width: HOTSPOT_TOUCH_SIZE,
+  },
+  hotspotVisual: {
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 999,
+    height: HOTSPOT_VISUAL_SIZE,
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    width: HOTSPOT_VISUAL_SIZE,
+  },
+  hotspotLayer: {
+    position: "absolute",
+  },
+  spark: {
+    backgroundColor: "#FFD166",
+    borderRadius: 999,
+    height: 8,
+    position: "absolute",
+    width: 8,
+  },
+  idLabel: {
+    backgroundColor: "rgba(10,16,36,0.74)",
+    borderRadius: 999,
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    position: "absolute",
+    top: HOTSPOT_TOUCH_SIZE - 8,
+  },
+  idLabelText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+});
