@@ -13,9 +13,10 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ActionButton } from "@/src/components/ActionButton";
 import { HotspotMap } from "@/src/components/HotspotMap";
 import { useHunt } from "@/src/context/HuntProvider";
 import { getZoneById, Hotspot } from "@/src/huntConfig";
@@ -118,6 +119,17 @@ export default function ZoneScreen() {
         setDraftHotspots(result.hotspots);
         setStorageLabel(result.storage);
         setLoadedLayoutLabel(result.layoutSource);
+        if (!isEditMode) {
+          const initialRemaining = Math.max(
+            result.hotspots.length - getFoundHotspots(zone.id).length,
+            0,
+          );
+          showFeedback(
+            initialRemaining > 0
+              ? `Te faltan ${initialRemaining}`
+              : "Todo encontrado",
+          );
+        }
       }
     });
 
@@ -146,7 +158,7 @@ export default function ZoneScreen() {
 
   const showFeedback = (message: string) => {
     setFeedback(message);
-    setTimeout(() => setFeedback(null), 1400);
+    setTimeout(() => setFeedback(null), 2000);
   };
 
   const updateDraftHotspots = (nextHotspots: Hotspot[]) => {
@@ -208,113 +220,125 @@ export default function ZoneScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboard}
       >
-        <View style={styles.container}>
-          <HotspotMap
-            burstingHotspotId={burstingHotspotId}
-            deleteMode={deleteMode}
-            foundHotspots={foundHotspots}
-            hotspots={activeHotspots}
-            isEditMode={isEditMode}
-            onHotspotDeleteRequest={(hotspotId) => {
-              Alert.alert(
-                "Delete hotspot?",
-                `Remove ${hotspotId} from ${zone.title}?`,
-                [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    style: "destructive",
-                    text: "Delete",
-                    onPress: () => {
-                      const nextHotspots = draftHotspots.filter(
-                        (hotspot) => hotspot.id !== hotspotId,
-                      );
+        <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
+          <View style={styles.container}>
+            <HotspotMap
+              burstingHotspotId={burstingHotspotId}
+              deleteMode={deleteMode}
+              foundHotspots={foundHotspots}
+              hotspots={activeHotspots}
+              isEditMode={isEditMode}
+              onHotspotDeleteRequest={(hotspotId) => {
+                Alert.alert(
+                  "Delete hotspot?",
+                  `Remove ${hotspotId} from ${zone.title}?`,
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      style: "destructive",
+                      text: "Delete",
+                      onPress: () => {
+                        const nextHotspots = draftHotspots.filter(
+                          (hotspot) => hotspot.id !== hotspotId,
+                        );
 
-                      updateDraftHotspots(nextHotspots);
-                      if (selectedHotspotId === hotspotId) {
-                        setSelectedHotspotId(null);
-                      }
-                      showFeedback(`Deleted ${hotspotId}`);
+                        updateDraftHotspots(nextHotspots);
+                        if (selectedHotspotId === hotspotId) {
+                          setSelectedHotspotId(null);
+                        }
+                        showFeedback(`Deleted ${hotspotId}`);
+                      },
                     },
-                  },
-                ],
-              );
-            }}
-            onHotspotMoveEnd={(hotspotId, x, y) => {
-              const nextHotspots = draftHotspots.map((hotspot) =>
-                hotspot.id === hotspotId ? { ...hotspot, x, y } : hotspot,
-              );
-
-              updateDraftHotspots(nextHotspots);
-              setSelectedHotspotId(hotspotId);
-              showFeedback(`Saved ${hotspotId}: ${x.toFixed(1)},${y.toFixed(1)}`);
-            }}
-            onHotspotPress={async (hotspotId) => {
-              const result = await markHotspot(
-                zoneId,
-                hotspotId,
-                savedHotspots.length,
-                savedHotspots.map((hotspot) => hotspot.id),
-              );
-
-              if (!result.added) {
-                return;
-              }
-
-              setBurstingHotspotId(hotspotId);
-              setTimeout(() => setBurstingHotspotId(null), 650);
-
-              try {
-                await Haptics.notificationAsync(
-                  Haptics.NotificationFeedbackType.Success,
+                  ],
                 );
-              } catch {}
-
-              const message = result.completed
-                ? "¡Zona completa!"
-                : `¡BRAVO! Te faltan ${result.remaining}`;
-
-              showFeedback(message);
-
-              if (result.completed) {
-                setTimeout(() => {
-                  router.replace(
-                    zoneId === 4
-                      ? ("/final" as never)
-                      : ((zoneId === 1
-                          ? isEditMode
-                            ? "/zone/1/complete?edit=1"
-                            : "/zone/1/complete"
-                          : completeRoute(zoneId)) as never),
-                  );
-                }, 950);
-              }
-            }}
-            onHotspotSelect={setSelectedHotspotId}
-            onMapBoundsChange={setMapBounds}
-            onMapTap={async (x, y) => {
-              if (!isEditMode) {
-                return;
-              }
-
-              const copiedValue = `${x.toFixed(1)},${y.toFixed(1)}`;
-              await Clipboard.setStringAsync(copiedValue);
-              showFeedback(`xPercent ${x.toFixed(1)} · yPercent ${y.toFixed(1)}`);
-            }}
-            zone={zone}
-          />
-
-          <View style={styles.topCard}>
-            <Pressable
-              delayLongPress={2000}
-              onLongPress={() => {
-                toggleEditMode();
-                showFeedback(isEditMode ? "EDIT OFF" : "EDIT ON");
               }}
-              style={styles.titleWrap}
-            >
-              <Text style={styles.zoneTitle}>{zone.title}</Text>
-              <Text style={styles.zoneSubtitle}>{zone.subtitle}</Text>
-            </Pressable>
+              onHotspotMoveEnd={(hotspotId, x, y) => {
+                const nextHotspots = draftHotspots.map((hotspot) =>
+                  hotspot.id === hotspotId ? { ...hotspot, x, y } : hotspot,
+                );
+
+                updateDraftHotspots(nextHotspots);
+                setSelectedHotspotId(hotspotId);
+                showFeedback(`Saved ${hotspotId}: ${x.toFixed(1)},${y.toFixed(1)}`);
+              }}
+              onHotspotPress={async (hotspotId) => {
+                const result = await markHotspot(
+                  zoneId,
+                  hotspotId,
+                  savedHotspots.length,
+                  savedHotspots.map((hotspot) => hotspot.id),
+                );
+
+                if (!result.added) {
+                  return;
+                }
+
+                setBurstingHotspotId(hotspotId);
+                setTimeout(() => setBurstingHotspotId(null), 650);
+
+                try {
+                  await Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Success,
+                  );
+                } catch {}
+
+                const message = result.completed
+                  ? "¡Zona completa!"
+                  : `¡BRAVO! Te faltan ${result.remaining}`;
+
+                showFeedback(message);
+
+                if (result.completed) {
+                  setTimeout(() => {
+                    router.replace(
+                      zoneId === 4
+                        ? ("/final" as never)
+                        : ((zoneId === 1
+                            ? isEditMode
+                              ? "/zone/1/complete?edit=1"
+                              : "/zone/1/complete"
+                            : completeRoute(zoneId)) as never),
+                    );
+                  }, 950);
+                }
+              }}
+              onHotspotSelect={setSelectedHotspotId}
+              onMapBoundsChange={setMapBounds}
+              onMapTap={async (x, y) => {
+                if (!isEditMode) {
+                  return;
+                }
+
+                const copiedValue = `${x.toFixed(1)},${y.toFixed(1)}`;
+                await Clipboard.setStringAsync(copiedValue);
+                showFeedback(`xPercent ${x.toFixed(1)} · yPercent ${y.toFixed(1)}`);
+              }}
+              zone={zone}
+            />
+
+            <View style={styles.topLeftHud}>
+              <Pressable
+                onPress={async () => {
+                  await resetProgress();
+                  router.replace("/");
+                }}
+                style={styles.resetIconButton}
+                testID="reset-zone-button"
+              >
+                <Ionicons color="#FFFFFF" name="refresh" size={18} />
+              </Pressable>
+
+              <Pressable
+                delayLongPress={2000}
+                onLongPress={() => {
+                  toggleEditMode();
+                  showFeedback(isEditMode ? "EDIT OFF" : "EDIT ON");
+                }}
+                style={styles.titleWrap}
+              >
+                <Text style={styles.zoneTitle}>{zone.title}</Text>
+              </Pressable>
+            </View>
 
             <View style={styles.topRightWrap}>
               {isEditMode ? (
@@ -329,16 +353,15 @@ export default function ZoneScreen() {
                 </Text>
               </View>
             </View>
-          </View>
 
-          {feedback ? (
-            <View style={styles.feedbackCard}>
-              <Text style={styles.feedbackText}>{feedback}</Text>
-            </View>
-          ) : null}
+            {feedback ? (
+              <View pointerEvents="none" style={styles.feedbackCard}>
+                <Text style={styles.feedbackText}>{feedback}</Text>
+              </View>
+            ) : null}
 
-          {isEditMode ? (
-            <View style={styles.editControls}>
+            {isEditMode ? (
+              <View style={styles.editControls}>
               <Pressable
                 onPress={() => {
                   const nextId = createHotspotId(zoneId, draftHotspots);
@@ -404,36 +427,9 @@ export default function ZoneScreen() {
                 </Text>
               </View>
             </View>
-          ) : null}
-
-          <View style={styles.bottomCard}>
-            <Text style={styles.remainingText}>
-              {remaining > 0
-                ? `Te faltan ${remaining} estrella${remaining === 1 ? "" : "s"}.`
-                : "Todo encontrado. ¡Prepárate para continuar!"}
-            </Text>
-
-            <View style={styles.actions}>
-              <ActionButton
-                label="Inicio"
-                onPress={() => router.replace("/")}
-                style={styles.actionButton}
-                testID="home-button"
-                variant="ghost"
-              />
-              <ActionButton
-                label="Reiniciar"
-                onPress={async () => {
-                  await resetProgress();
-                  router.replace("/");
-                }}
-                style={styles.actionButton}
-                testID="reset-zone-button"
-                variant="subtle"
-              />
-            </View>
+            ) : null}
           </View>
-        </View>
+        </SafeAreaView>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
@@ -443,49 +439,53 @@ const styles = StyleSheet.create({
   keyboard: {
     flex: 1,
   },
-  container: {
-    backgroundColor: "#F8F9FA",
+  safeArea: {
+    backgroundColor: "#050914",
     flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+  },
+  container: {
+    backgroundColor: "#050914",
+    flex: 1,
   },
   loading: {
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#050914",
     flex: 1,
     justifyContent: "center",
   },
-  topCard: {
-    alignItems: "center",
-    alignSelf: "center",
-    backgroundColor: "rgba(10,16,36,0.64)",
-    borderRadius: 24,
-    flexDirection: "row",
-    gap: 16,
-    justifyContent: "space-between",
-    left: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+  topLeftHud: {
+    gap: 8,
+    left: 16,
     position: "absolute",
-    right: 20,
-    top: 28,
+    top: 14,
+  },
+  resetIconButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(10,16,36,0.72)",
+    borderRadius: 999,
+    height: 36,
+    justifyContent: "center",
+    width: 36,
   },
   zoneTitle: {
-    color: "#FFFFFF",
-    fontSize: 23,
-    fontWeight: "900",
-  },
-  zoneSubtitle: {
-    color: "rgba(255,255,255,0.82)",
-    fontSize: 13,
-    fontWeight: "600",
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 12,
+    fontWeight: "700",
   },
   titleWrap: {
-    gap: 2,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(10,16,36,0.52)",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   topRightWrap: {
     alignItems: "flex-end",
     gap: 8,
+    position: "absolute",
+    right: 16,
+    top: 14,
   },
   editBadge: {
     backgroundColor: "rgba(255, 209, 102, 0.22)",
@@ -512,20 +512,20 @@ const styles = StyleSheet.create({
   },
   feedbackCard: {
     alignSelf: "center",
-    backgroundColor: "rgba(239,71,111,0.94)",
+    backgroundColor: "rgba(10,16,36,0.84)",
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 12,
     position: "absolute",
-    top: 116,
+    top: 86,
   },
   feedbackText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 13,
+    fontWeight: "700",
   },
   editControls: {
-    bottom: 130,
+    bottom: 24,
     gap: 10,
     position: "absolute",
     right: 24,
@@ -588,27 +588,5 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.82)",
     fontSize: 11,
     lineHeight: 15,
-  },
-  bottomCard: {
-    backgroundColor: "rgba(255,255,255,0.94)",
-    borderRadius: 28,
-    bottom: 20,
-    gap: 14,
-    left: 20,
-    padding: 18,
-    position: "absolute",
-    right: 20,
-  },
-  remainingText: {
-    color: "#1A1A1A",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  actionButton: {
-    flex: 1,
   },
 });

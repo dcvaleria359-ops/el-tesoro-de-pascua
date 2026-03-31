@@ -449,9 +449,6 @@ export function HotspotMap({
           })}
         </View>
 
-        <View style={styles.labelCard}>
-          <Text style={styles.labelText}>{zone.subtitle}</Text>
-        </View>
       </ImageBackground>
     </Pressable>
   );
@@ -459,9 +456,7 @@ export function HotspotMap({
 
 const styles = StyleSheet.create({
   wrapper: {
-    borderRadius: 32,
     flex: 1,
-    overflow: "hidden",
     width: "100%",
   },
   map: {
@@ -520,19 +515,6 @@ const styles = StyleSheet.create({
   idLabelText: {
     color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: "700",
-  },
-  labelCard: {
-    alignSelf: "center",
-    backgroundColor: "rgba(255,255,255,0.18)",
-    borderRadius: 999,
-    marginBottom: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  labelText: {
-    color: "#FFFFFF",
-    fontSize: 13,
     fontWeight: "700",
   },
 });
