@@ -11,6 +11,7 @@ import { loadZoneLayout } from "@/src/storage/hotspotOverrides";
 
 const zoneOneCompletionSource = require("../../../assets/videos/zona1_end.mp4");
 const zoneTwoCompletionSource = require("../../../assets/videos/zona2_end.mp4");
+const zoneThreeCompletionSource = require("../../../assets/videos/zona3_end.mp4");
 
 export default function ZoneCompleteScreen() {
   const params = useLocalSearchParams<{ edit?: string; zoneId: string }>();
@@ -57,8 +58,13 @@ export default function ZoneCompleteScreen() {
     );
   }
 
-  if ((zone.id === 1 || zone.id === 2) && zone.completionVideoUrl) {
-    const videoSource = zone.id === 1 ? zoneOneCompletionSource : zoneTwoCompletionSource;
+  if ((zone.id === 1 || zone.id === 2 || zone.id === 3) && zone.completionVideoUrl) {
+    const videoSource =
+      zone.id === 1
+        ? zoneOneCompletionSource
+        : zone.id === 2
+          ? zoneTwoCompletionSource
+          : zoneThreeCompletionSource;
 
     return (
       <View style={styles.videoContainer}>
