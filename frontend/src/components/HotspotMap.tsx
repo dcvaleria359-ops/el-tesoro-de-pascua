@@ -4,6 +4,7 @@ import {
   ImageBackground,
   LayoutChangeEvent,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -378,143 +379,26 @@ export function HotspotMap({
   }, [mapBounds, onMapBoundsChange]);
 
   const handleLayout = (event: LayoutChangeEvent) => {
-    setLayout(event.nativeEvent.layout);
+    const { width, height } = event.nativeEvent.layout;
+    setLayout({ width, height });
   };
 
   return (
-    <Pressable
-      onLayout={handleLayout}
-      onPress={({ nativeEvent }) => {
-        if (!isEditMode) {
-          return;
-        }
+    <View style={styles.outerWrapper}>
+      <Pressable
+        onLayout={handleLayout}
+        onPress={({ nativeEvent }) => {
+          if (!isEditMode) {
+            return;
+          }
 
-        if (ignoreNextTapRef.current) {
-          ignoreNextTapRef.current = false;
-          return;
-        }
+          if (ignoreNextTapRef.current) {
+            ignoreNextTapRef.current = false;
+            return;
+          }
 
-        const x = clampPercent(
-          ((nativeEvent.locationX - mapBounds.left) / Math.max(mapBounds.width, 1)) * 100,
-        );
-        const y = clampPercent(
-          ((nativeEvent.locationY - mapBounds.top) / Math.max(mapBounds.height, 1)) * 100,
-        );
-        onMapTap(x, y);
-      }}
-      style={styles.wrapper}
-      testID={`zone-map-${zone.id}`}
-    >
-      <ImageBackground
-        resizeMode={zone.mapResizeMode ?? "cover"}
-        source={toSource(zone.mapImage)}
-        style={styles.map}
-      >
-        <View style={styles.overlay} />
-
-        <View
-          pointerEvents="box-none"
-          style={[
-            styles.hotspotLayer,
-            {
-              height: mapBounds.height,
-              left: mapBounds.left,
-              top: mapBounds.top,
-              width: mapBounds.width,
-            },
-          ]}
-        >
-          {hotspots.map((hotspot) => {
-            const isFound = foundHotspots.includes(hotspot.id);
-
-            return (
-              <MapHotspot
-                accentColor={zone.accentColor}
-                deleteMode={deleteMode}
-                hotspot={hotspot}
-                isBursting={burstingHotspotId === hotspot.id}
-                isEditMode={isEditMode}
-                isFound={isFound}
-                key={hotspot.id}
-                layout={{ height: mapBounds.height, width: mapBounds.width }}
-                onDeleteRequest={onHotspotDeleteRequest}
-                onMoveEnd={onHotspotMoveEnd}
-                onPress={onHotspotPress}
-                onSelect={onHotspotSelect}
-                onTouchStart={() => {
-                  ignoreNextTapRef.current = true;
-                }}
-              />
-            );
-          })}
-        </View>
-
-      </ImageBackground>
-    </Pressable>
-  );
-}
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    width: "100%",
-  },
-  map: {
-    backgroundColor: "#0A1024",
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(10, 16, 36, 0.16)",
-  },
-  hotspot: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hotspotTouchArea: {
-    alignItems: "center",
-    height: HOTSPOT_TOUCH_SIZE,
-    justifyContent: "center",
-    marginLeft: -(HOTSPOT_TOUCH_SIZE / 2),
-    marginTop: -(HOTSPOT_TOUCH_SIZE / 2),
-    position: "absolute",
-    width: HOTSPOT_TOUCH_SIZE,
-  },
-  hotspotVisual: {
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 999,
-    height: HOTSPOT_VISUAL_SIZE,
-    justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    width: HOTSPOT_VISUAL_SIZE,
-  },
-  hotspotLayer: {
-    position: "absolute",
-  },
-  spark: {
-    backgroundColor: "#FFD166",
-    borderRadius: 999,
-    height: 8,
-    position: "absolute",
-    width: 8,
-  },
-  idLabel: {
-    backgroundColor: "rgba(10,16,36,0.74)",
-    borderRadius: 999,
-    marginTop: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    position: "absolute",
-    top: HOTSPOT_TOUCH_SIZE - 8,
-  },
-  idLabelText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "700",
-  },
-});
+          const x = clampPercent(
+            ((nativeEvent.locationX - mapBounds.left) /
+              Math.max(mapBounds.width, 1)) *
+              100,
+          );
