@@ -30,7 +30,12 @@ type HuntContextValue = {
   getFoundHotspots: (zoneId: number) => string[];
   getFirstPlayableZone: () => number;
   isZoneUnlocked: (zoneId: number) => boolean;
-  markHotspot: (zoneId: number, hotspotId: string) => Promise<MarkResult>;
+  markHotspot: (
+    zoneId: number,
+    hotspotId: string,
+    totalHotspots?: number,
+    activeHotspotIds?: string[],
+  ) => Promise<MarkResult>;
   resetProgress: () => Promise<void>;
   startHunt: () => Promise<void>;
 };
@@ -92,23 +97,32 @@ export function HuntProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const markHotspot = async (zoneId: number, hotspotId: string) => {
+  const markHotspot = async (
+    zoneId: number,
+    hotspotId: string,
+    totalHotspots?: number,
+    activeHotspotIds?: string[],
+  ) => {
     const zone = getZoneById(zoneId);
     if (!zone) {
       return { added: false, remaining: 0, completed: false };
     }
 
-    const existing = getFoundHotspots(zoneId);
+    const hotspotCount = totalHotspots ?? zone.hotspots.length;
+
+    const existing = activeHotspotIds?.length
+      ? getFoundHotspots(zoneId).filter((id) => activeHotspotIds.includes(id))
+      : getFoundHotspots(zoneId);
     if (existing.includes(hotspotId)) {
       return {
         added: false,
-        remaining: Math.max(zone.hotspots.length - existing.length, 0),
+        remaining: Math.max(hotspotCount - existing.length, 0),
         completed: progress.completedZones.includes(zoneId),
       };
     }
 
     const nextFound = [...existing, hotspotId];
-    const completed = nextFound.length === zone.hotspots.length;
+    const completed = nextFound.length === hotspotCount;
     const completedZones = completed
       ? Array.from(new Set([...progress.completedZones, zoneId])).sort()
       : progress.completedZones;
@@ -131,7 +145,7 @@ export function HuntProvider({ children }: { children: ReactNode }) {
 
     return {
       added: true,
-      remaining: Math.max(zone.hotspots.length - nextFound.length, 0),
+      remaining: Math.max(hotspotCount - nextFound.length, 0),
       completed,
     };
   };

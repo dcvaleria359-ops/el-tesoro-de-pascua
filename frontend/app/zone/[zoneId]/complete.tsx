@@ -1,11 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { ActionButton } from "@/src/components/ActionButton";
 import { MediaStage } from "@/src/components/MediaStage";
 import { useHunt } from "@/src/context/HuntProvider";
 import { getZoneById } from "@/src/huntConfig";
+import { getStoredHotspots } from "@/src/storage/hotspotOverrides";
 
 export default function ZoneCompleteScreen() {
   const params = useLocalSearchParams<{ edit?: string; zoneId: string }>();
@@ -14,15 +15,34 @@ export default function ZoneCompleteScreen() {
   const { getFirstPlayableZone, getFoundHotspots, isEditModeEnabled, isLoading } = useHunt();
 
   const isEditMode = params.edit === "1" || isEditModeEnabled;
+  const [requiredHotspotCount, setRequiredHotspotCount] = useState(zone?.hotspots.length ?? 4);
 
   const zoneRoute = (targetZone: number) =>
     isEditMode ? `/zone/${targetZone}?edit=1` : `/zone/${targetZone}`;
 
   useEffect(() => {
-    if (!isLoading && (!zone || getFoundHotspots(zoneId).length < (zone?.hotspots.length ?? 4))) {
+    let isMounted = true;
+
+    if (!zone) {
+      return;
+    }
+
+    getStoredHotspots(zoneId, zone.hotspots).then((hotspots) => {
+      if (isMounted) {
+        setRequiredHotspotCount(hotspots.length);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [zone, zoneId]);
+
+  useEffect(() => {
+    if (!isLoading && (!zone || getFoundHotspots(zoneId).length < requiredHotspotCount)) {
       router.replace(zoneRoute(getFirstPlayableZone()) as never);
     }
-  }, [getFirstPlayableZone, getFoundHotspots, isLoading, zone, zoneId]);
+  }, [getFirstPlayableZone, getFoundHotspots, isLoading, requiredHotspotCount, zone, zoneId]);
 
   if (isLoading || !zone) {
     return (
@@ -44,7 +64,7 @@ export default function ZoneCompleteScreen() {
         <View style={styles.messageCard}>
           <Text style={styles.messageTitle}>¡Excelente trabajo!</Text>
           <Text style={styles.messageBody}>
-            Has encontrado las 4 estrellas. El siguiente botón mantiene el flujo lineal de la caza.
+            Has encontrado todos los hotspots de esta zona. El siguiente botón mantiene el flujo lineal de la caza.
           </Text>
         </View>
 

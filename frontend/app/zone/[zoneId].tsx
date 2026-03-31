@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import {
   ActivityIndicator,
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -17,12 +18,28 @@ import * as Haptics from "expo-haptics";
 import { ActionButton } from "@/src/components/ActionButton";
 import { HotspotMap } from "@/src/components/HotspotMap";
 import { useHunt } from "@/src/context/HuntProvider";
-import { getZoneById } from "@/src/huntConfig";
+import { getZoneById, Hotspot } from "@/src/huntConfig";
+import { getStoredHotspots, saveStoredHotspots } from "@/src/storage/hotspotOverrides";
 
-type DraftHotspot = {
-  id: string;
-  x: number;
-  y: number;
+const clampPercent = (value: number) =>
+  Number(Math.min(100, Math.max(0, value)).toFixed(1));
+
+const createHotspotId = (zoneId: number, hotspots: Hotspot[]) => {
+  const prefix = `z${zoneId}-`;
+  const usedSuffixes = new Set(
+    hotspots
+      .filter((hotspot) => hotspot.id.startsWith(prefix))
+      .map((hotspot) => hotspot.id.replace(prefix, "")),
+  );
+
+  for (let index = 0; index < 26; index += 1) {
+    const suffix = String.fromCharCode(97 + index);
+    if (!usedSuffixes.has(suffix)) {
+      return `${prefix}${suffix}`;
+    }
+  }
+
+  return `${prefix}${hotspots.length + 1}`;
 };
 
 export default function ZoneScreen() {
@@ -44,16 +61,24 @@ export default function ZoneScreen() {
 
   const isEditMode = params.edit === "1" || isEditModeEnabled;
 
-  const [draftHotspots, setDraftHotspots] = useState<DraftHotspot[]>([]);
+  const [editableHotspots, setEditableHotspots] = useState<Hotspot[]>(
+    zone?.hotspots ?? [],
+  );
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [burstingHotspotId, setBurstingHotspotId] = useState<string | null>(
+    null,
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [lastCopied, setLastCopied] = useState<string | null>(null);
 
   const foundHotspots = useMemo(
-    () => getFoundHotspots(zoneId),
-    [getFoundHotspots, zoneId],
+    () =>
+      getFoundHotspots(zoneId).filter((hotspotId) =>
+        editableHotspots.some((hotspot) => hotspot.id === hotspotId),
+      ),
+    [editableHotspots, getFoundHotspots, zoneId],
   );
 
-  const remaining = zone ? zone.hotspots.length - foundHotspots.length : 0;
+  const remaining = Math.max(editableHotspots.length - foundHotspots.length, 0);
   const zoneRoute = (targetZone: number) =>
     isEditMode ? `/zone/${targetZone}?edit=1` : `/zone/${targetZone}`;
   const completeRoute = (targetZone: number) =>
@@ -64,6 +89,30 @@ export default function ZoneScreen() {
   useEffect(() => {
     void startHunt();
   }, [startHunt]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!zone) {
+      return;
+    }
+
+    getStoredHotspots(zone.id, zone.hotspots).then((storedHotspots) => {
+      if (isMounted) {
+        setEditableHotspots(storedHotspots);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [zone, zoneId]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setDeleteMode(false);
+    }
+  }, [isEditMode]);
 
   useEffect(() => {
     if (!isLoading && !zone) {
@@ -80,6 +129,22 @@ export default function ZoneScreen() {
   const showFeedback = (message: string) => {
     setFeedback(message);
     setTimeout(() => setFeedback(null), 1200);
+  };
+
+  const persistHotspots = async (nextHotspots: Hotspot[]) => {
+    if (!zone) {
+      return;
+    }
+
+    const normalized = nextHotspots.map((hotspot) => ({
+      ...hotspot,
+      label: hotspot.label || hotspot.id,
+      x: clampPercent(hotspot.x),
+      y: clampPercent(hotspot.y),
+    }));
+
+    setEditableHotspots(normalized);
+    await saveStoredHotspots(zone.id, normalized);
   };
 
   if (isLoading || !zone) {
@@ -101,11 +166,19 @@ export default function ZoneScreen() {
             foundHotspots={foundHotspots}
             isEditMode={isEditMode}
             onHotspotPress={async (hotspotId) => {
-              const result = await markHotspot(zoneId, hotspotId);
+              const result = await markHotspot(
+                zoneId,
+                hotspotId,
+                editableHotspots.length,
+                editableHotspots.map((hotspot) => hotspot.id),
+              );
 
               if (!result.added) {
                 return;
               }
+
+              setBurstingHotspotId(hotspotId);
+              setTimeout(() => setBurstingHotspotId(null), 650);
 
               try {
                 await Haptics.notificationAsync(
@@ -137,19 +210,42 @@ export default function ZoneScreen() {
               const copiedValue = `${x.toFixed(1)},${y.toFixed(1)}`;
 
               await Clipboard.setStringAsync(copiedValue);
-              setLastCopied(
-                `xPercent: ${x.toFixed(1)} · yPercent: ${y.toFixed(1)} · copied: ${copiedValue}`,
-              );
-
-              setDraftHotspots((current) => [
-                ...current.slice(-3),
-                { id: `draft-${Date.now()}`, x, y },
-              ]);
               showFeedback(
                 `xPercent ${x.toFixed(1)} · yPercent ${y.toFixed(1)}`,
               );
             }}
-            previewHotspots={draftHotspots}
+            burstingHotspotId={burstingHotspotId}
+            deleteMode={deleteMode}
+            hotspots={editableHotspots}
+            onHotspotDeleteRequest={(hotspotId) => {
+              Alert.alert(
+                "Delete hotspot?",
+                `Remove ${hotspotId} from ${zone.title}?`,
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    style: "destructive",
+                    text: "Delete",
+                    onPress: () => {
+                      const nextHotspots = editableHotspots.filter(
+                        (hotspot) => hotspot.id !== hotspotId,
+                      );
+
+                      void persistHotspots(nextHotspots);
+                      showFeedback(`Deleted ${hotspotId}`);
+                    },
+                  },
+                ],
+              );
+            }}
+            onHotspotMoveEnd={(hotspotId, x, y) => {
+              const nextHotspots = editableHotspots.map((hotspot) =>
+                hotspot.id === hotspotId ? { ...hotspot, x, y } : hotspot,
+              );
+
+              void persistHotspots(nextHotspots);
+              showFeedback(`Saved ${hotspotId}: ${x.toFixed(1)},${y.toFixed(1)}`);
+            }}
             zone={zone}
           />
 
@@ -187,46 +283,44 @@ export default function ZoneScreen() {
             </View>
           ) : null}
 
+          {isEditMode ? (
+            <View style={styles.editControls}>
+              <Pressable
+                onPress={() => {
+                  const nextId = createHotspotId(zoneId, editableHotspots);
+                  const nextHotspots = [
+                    ...editableHotspots,
+                    { id: nextId, label: nextId, x: 50, y: 50 },
+                  ];
+
+                  void persistHotspots(nextHotspots);
+                  showFeedback(`Added ${nextId}: 50.0,50.0`);
+                }}
+                style={styles.addHotspotButton}
+              >
+                <Text style={styles.addHotspotText}>+ Add hotspot</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setDeleteMode((current) => !current)}
+                style={[
+                  styles.deleteToggleButton,
+                  deleteMode && styles.deleteToggleButtonActive,
+                ]}
+              >
+                <Text style={styles.deleteToggleText}>
+                  {deleteMode ? "Delete ON" : "Delete"}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+
           <View style={styles.bottomCard}>
             <Text style={styles.remainingText}>
               {remaining > 0
                 ? `Te faltan ${remaining} estrella${remaining === 1 ? "" : "s"}.`
                 : "Todo encontrado. ¡Prepárate para continuar!"}
             </Text>
-
-            {isEditMode ? (
-              <View style={styles.editCard}>
-                <Text style={styles.editTitle}>Edit mode</Text>
-                <Text style={styles.editBody}>
-                  Tap the map to capture percentage coordinates and copy them to the clipboard.
-                </Text>
-                {lastCopied ? (
-                  <View style={styles.editSection}>
-                    <Text style={styles.editSectionTitle}>Last copied</Text>
-                    <Text style={styles.editCode}>{lastCopied}</Text>
-                  </View>
-                ) : null}
-                <View style={styles.editSection}>
-                  <Text style={styles.editSectionTitle}>Existing hotspots</Text>
-                  {zone.hotspots.map((hotspot) => (
-                    <Text key={hotspot.id} style={styles.editCode}>
-                      {hotspot.id}: xPercent {hotspot.x.toFixed(1)} · yPercent {hotspot.y.toFixed(1)}
-                    </Text>
-                  ))}
-                </View>
-                <View style={styles.editSection}>
-                  <Text style={styles.editSectionTitle}>Recent taps</Text>
-                {draftHotspots
-                  .slice()
-                  .reverse()
-                  .map((hotspot) => (
-                    <Text key={hotspot.id} style={styles.editCode}>
-                      xPercent: {hotspot.x.toFixed(1)} · yPercent: {hotspot.y.toFixed(1)}
-                    </Text>
-                  ))}
-                </View>
-              </View>
-            ) : null}
 
             <View style={styles.actions}>
               <ActionButton
@@ -339,6 +433,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800",
   },
+  editControls: {
+    bottom: 130,
+    gap: 10,
+    position: "absolute",
+    right: 24,
+  },
+  addHotspotButton: {
+    backgroundColor: "rgba(10,16,36,0.9)",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  addHotspotText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  deleteToggleButton: {
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  deleteToggleButtonActive: {
+    backgroundColor: "#EF476F",
+  },
+  deleteToggleText: {
+    color: "#1A1A1A",
+    fontSize: 13,
+    fontWeight: "800",
+  },
   bottomCard: {
     backgroundColor: "rgba(255,255,255,0.94)",
     borderRadius: 28,
@@ -353,39 +478,6 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     fontSize: 15,
     fontWeight: "700",
-  },
-  editCard: {
-    backgroundColor: "#0A1024",
-    borderRadius: 20,
-    gap: 6,
-    padding: 14,
-  },
-  editTitle: {
-    color: "#FFD166",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  editBody: {
-    color: "rgba(255,255,255,0.82)",
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  editSection: {
-    gap: 4,
-    marginTop: 4,
-  },
-  editSectionTitle: {
-    color: "#FFD166",
-    fontSize: 12,
-    fontWeight: "800",
-    textTransform: "uppercase",
-  },
-  editCode: {
-    color: "#FFFFFF",
-    fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
-    fontSize: 12,
   },
   actions: {
     flexDirection: "row",
