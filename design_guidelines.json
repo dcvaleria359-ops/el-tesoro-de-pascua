@@ -1,0 +1,56 @@
+{
+  "theme": "Light",
+  "archetype": "6 (Vibrant Play)",
+  "emotional_tone": "Energetic, youthful, celebratory, tactile (like an actual physical treasure map)",
+  "colors": {
+    "primary": "#FFD166",
+    "secondary": "#43B0F1",
+    "accent": "#EF476F",
+    "background": "#F8F9FA",
+    "text_main": "#1A1A1A",
+    "text_muted": "#6C757D",
+    "success": "#06D6A0",
+    "overlay": "rgba(0,0,0,0.5)"
+  },
+  "typography": {
+    "primary_font": "System bold (rounded if possible) - prioritizing immediate readability and playfulness",
+    "secondary_font": "System regular",
+    "headings": {
+      "h1": "text-4xl font-black tracking-tight text-center",
+      "h2": "text-3xl font-bold tracking-tight text-center",
+      "h3": "text-2xl font-bold text-center"
+    },
+    "body": "text-base font-medium leading-relaxed"
+  },
+  "layout": {
+    "spacing_system": "Generous padding: p-4, p-6, p-8 to prevent mis-clicks by kids. Use wide touch targets.",
+    "container": "flex-1 w-full bg-background items-center justify-center relative",
+    "safe_area": "MANDATORY: Use SafeAreaView from react-native-safe-area-context for all main screens to avoid notches."
+  },
+  "components": {
+    "buttons": "Rounded-full, heavy padding (py-4 px-8), bold text, subtle shadow (shadow-md). Background: accent or secondary color. Press feedback: use active opacity.",
+    "modals": "Centered absolute overlay with semi-transparent dark background (bg-black/60). Inner card: rounded-3xl bg-white p-8 items-center justify-center shadow-2xl. Width: 80-90% of screen.",
+    "hotspots": "Absolute positioned TouchableOpacity over the map image. Minimum size 48x48 (touch target size) represented as a large bright star icon (@expo/vector-icons).",
+    "video_player": "Fullscreen absolute video player using expo-av. Should cover the entire screen."
+  },
+  "media": {
+    "start_bg": "https://images.pexels.com/photos/7169591/pexels-photo-7169591.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "zone_maps": [
+      "https://images.unsplash.com/photo-1705370401172-083571283df6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxjYXJ0b29uJTIwdHJlYXN1cmUlMjBtYXB8ZW58MHx8fHwxNzc0OTM5OTQ2fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1677295922463-147d7f2f718c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwzfHxjYXJ0b29uJTIwdHJlYXN1cmUlMjBtYXB8ZW58MHx8fHwxNzc0OTM5OTQ2fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1729075323457-66ed2239d875?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHw0fHxjYXJ0b29uJTIwdHJlYXN1cmUlMjBtYXB8ZW58MHx8fHwxNzc0OTM5OTQ2fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1638096877287-6894fd602663?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwyfHxjYXJ0b29uJTIwdHJlYXN1cmUlMjBtYXB8ZW58MHx8fHwxNzc0OTM5OTQ2fDA&ixlib=rb-4.1.0&q=85"
+    ],
+    "celebration_bg": "https://images.pexels.com/photos/4112630/pexels-photo-4112630.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+  },
+  "instructions_to_main_agent": {
+    "framework": "Expo React Native with Expo Router. This is NOT a web app anymore, it's a mobile app.",
+    "styling": "NativeWind (Tailwind for React Native). Use standard Tailwind classes.",
+    "storage": "Use AsyncStorage (@react-native-async-storage/async-storage) for saving progress (closest equivalent to localStorage).",
+    "icons": "Use @expo/vector-icons (e.g., FontAwesome, Ionicons) for the stars/hotspots on the map.",
+    "video": "Use expo-av for Video playback. The user mentioned missing videos, so handle video playback gracefully: use remote URLs if provided, or show a static image background (from 'media' above) with a 'Skip Video' button if local MP4s are missing. Video should be absolute fill.",
+    "edit_mode": "Since it's Expo Router, useLocalSearchParams() to check for ?edit=1. When active, tapping the map should calculate (touch_x/width)*100 and (touch_y/height)*100, log it, and temporarily show a hotspot.",
+    "testing": "CRITICAL: Add testID prop (React Native equivalent of data-testid) to all interactive elements for robust automated testing.",
+    "readme": "Ensure the README clearly explains how to replace the media assets (videos in assets/videos, images in assets/maps) and how to update src/huntConfig.ts."
+  }
+}
