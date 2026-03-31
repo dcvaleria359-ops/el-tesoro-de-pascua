@@ -26,6 +26,7 @@ type HuntContextValue = {
   isLoading: boolean;
   isEditModeEnabled: boolean;
   enableEditMode: () => void;
+  toggleEditMode: () => void;
   getFoundHotspots: (zoneId: number) => string[];
   getFirstPlayableZone: () => number;
   isZoneUnlocked: (zoneId: number) => boolean;
@@ -74,6 +75,10 @@ export function HuntProvider({ children }: { children: ReactNode }) {
 
   const enableEditMode = () => {
     setIsEditModeEnabled(true);
+  };
+
+  const toggleEditMode = () => {
+    setIsEditModeEnabled((current) => !current);
   };
 
   const startHunt = async () => {
@@ -141,6 +146,7 @@ export function HuntProvider({ children }: { children: ReactNode }) {
       isLoading,
       isEditModeEnabled,
       enableEditMode,
+      toggleEditMode,
       getFoundHotspots,
       getFirstPlayableZone,
       isZoneUnlocked,

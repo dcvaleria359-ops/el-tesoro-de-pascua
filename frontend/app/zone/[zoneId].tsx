@@ -6,6 +6,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
@@ -38,6 +39,7 @@ export default function ZoneScreen() {
     markHotspot,
     resetProgress,
     startHunt,
+    toggleEditMode,
   } = useHunt();
 
   const isEditMode = params.edit === "1" || isEditModeEnabled;
@@ -132,31 +134,50 @@ export default function ZoneScreen() {
                 return;
               }
 
-              const copiedValue = `xPercent: ${x.toFixed(1)}, yPercent: ${y.toFixed(1)}`;
+              const copiedValue = `${x.toFixed(1)},${y.toFixed(1)}`;
 
               await Clipboard.setStringAsync(copiedValue);
-              setLastCopied(copiedValue);
+              setLastCopied(
+                `xPercent: ${x.toFixed(1)} · yPercent: ${y.toFixed(1)} · copied: ${copiedValue}`,
+              );
 
               setDraftHotspots((current) => [
                 ...current.slice(-3),
                 { id: `draft-${Date.now()}`, x, y },
               ]);
-              showFeedback(`Copied ${x.toFixed(1)} / ${y.toFixed(1)}`);
+              showFeedback(
+                `xPercent ${x.toFixed(1)} · yPercent ${y.toFixed(1)}`,
+              );
             }}
             previewHotspots={draftHotspots}
             zone={zone}
           />
 
           <View style={styles.topCard}>
-            <View>
+            <Pressable
+              delayLongPress={2000}
+              onLongPress={() => {
+                toggleEditMode();
+                showFeedback(isEditMode ? "EDIT OFF" : "EDIT ON");
+              }}
+              style={styles.titleWrap}
+            >
               <Text style={styles.zoneTitle}>{zone.title}</Text>
               <Text style={styles.zoneSubtitle}>{zone.subtitle}</Text>
-            </View>
+            </Pressable>
 
-            <View style={styles.counterPill}>
-              <Text style={styles.counterText}>
-                {foundHotspots.length}/{zone.hotspots.length}
-              </Text>
+            <View style={styles.topRightWrap}>
+              {isEditMode ? (
+                <View style={styles.editBadge}>
+                  <Text style={styles.editBadgeText}>EDIT ON</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.counterPill}>
+                <Text style={styles.counterText}>
+                  {foundHotspots.length}/{zone.hotspots.length}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -273,6 +294,25 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.82)",
     fontSize: 13,
     fontWeight: "600",
+  },
+  titleWrap: {
+    gap: 2,
+  },
+  topRightWrap: {
+    alignItems: "flex-end",
+    gap: 8,
+  },
+  editBadge: {
+    backgroundColor: "rgba(255, 209, 102, 0.22)",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  editBadgeText: {
+    color: "#FFD166",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 0.6,
   },
   counterPill: {
     backgroundColor: "rgba(255,255,255,0.18)",

@@ -39,6 +39,7 @@ Build an Easter Hunt app with an intro stage, 4 map zones, clickable star hotspo
 - 2026-03-31 — Added the uploaded `frontend/assets/maps/zona1.png` as the local Zone 1 map with contain rendering and hotspots on top
 - 2026-03-31 — Made progress storage crash-safe with AsyncStorage detection and automatic in-memory fallback
 - 2026-03-31 — Added a desktop-accessible Edit link on the Start screen and a native Edit Mode screen to enable editing without manual URL changes
+- 2026-03-31 — Added a 2-second long-press zone-title toggle for in-app EDIT ON/OFF with clipboard copying in Expo Go
 
 ## Prioritized Backlog
 
