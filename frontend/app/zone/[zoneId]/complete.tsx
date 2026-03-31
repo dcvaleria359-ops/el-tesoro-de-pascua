@@ -10,6 +10,7 @@ import { getZoneById } from "@/src/huntConfig";
 import { loadZoneLayout } from "@/src/storage/hotspotOverrides";
 
 const zoneOneCompletionSource = require("../../../assets/videos/zona1_end.mp4");
+const zoneTwoCompletionSource = require("../../../assets/videos/zona2_end.mp4");
 
 export default function ZoneCompleteScreen() {
   const params = useLocalSearchParams<{ edit?: string; zoneId: string }>();
@@ -56,12 +57,16 @@ export default function ZoneCompleteScreen() {
     );
   }
 
-  if (zone.id === 1 && zone.completionVideoUrl) {
+  if ((zone.id === 1 || zone.id === 2) && zone.completionVideoUrl) {
+    const videoSource = zone.id === 1 ? zoneOneCompletionSource : zoneTwoCompletionSource;
+
     return (
       <View style={styles.videoContainer}>
-        <View style={styles.debugLabel}>
-          <Text style={styles.debugLabelText}>COMPLETE ZONE 1: zona1_end.mp4</Text>
-        </View>
+        {zone.id === 1 ? (
+          <View style={styles.debugLabel}>
+            <Text style={styles.debugLabelText}>COMPLETE ZONE 1: zona1_end.mp4</Text>
+          </View>
+        ) : null}
         <Video
           isLooping={false}
           onPlaybackStatusUpdate={(status) => {
@@ -71,7 +76,7 @@ export default function ZoneCompleteScreen() {
           }}
           resizeMode={ResizeMode.CONTAIN}
           shouldPlay
-          source={zoneOneCompletionSource}
+          source={videoSource}
           style={styles.video}
           useNativeControls={false}
         />

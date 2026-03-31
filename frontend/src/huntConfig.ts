@@ -57,7 +57,7 @@ export const zones: ZoneConfig[] = [
     mapImage: require("../assets/maps/zona2llamas.jpg"),
     mapAspectRatio: 1080 / 1920,
     mapResizeMode: "contain",
-    completionVideoUrl: null,
+    completionVideoUrl: require("../assets/videos/zona2_end.mp4"),
     nextLabel: "IR A LA ZONA 3",
     hotspots: [
       { id: "z2-a", label: "Llama 1", x: 27.1, y: 54.9 },
